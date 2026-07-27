@@ -1450,3 +1450,831 @@ Just let me know what you're working on or what's on your mind, and we can dive 
 [INFO] AppFile: 
   ✦ Thank you for using Jinvexa!
 [INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] App: Starting Jinvexa Learning AI
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 🧠 MODE: Mentoring Layer
+[INFO] AppFile: 
+📋 Select Mentoring Mode:
+[INFO] AppFile:   1. Session Mode (Chat about one specific course)
+[INFO] AppFile:   2. Full Mode (Chat about all your learning)
+[INFO] App: Waiting for user input: 
+Enter choice (1-2)...
+[INFO] App: Waiting for user input: 
+👤 Enter your user ID...
+[INFO] AppFile: 
+🧠 Starting mentoring session for: All Sessions
+[INFO] AppFile: 📌 Mode: FULL
+[INFO] AppFile: ============================================================
+[INFO] AppFile: 
+💡 You can ask questions about the course content, request explanations,
+[INFO] AppFile:    seek clarification on concepts, or just have a learning conversation.
+[INFO] AppFile: 
+   Type 'quit' to end the session.
+[INFO] AppFile:    Type 'clear' to clear conversation history.
+[INFO] AppFile:    Type 'summary' to see a summary of this conversation.
+[INFO] AppFile: ============================================================
+[INFO] App: Waiting for user input: 
+👤 You...
+[INFO] AppFile: 
+🧠 Jinvexa Mentor is thinking...
+[INFO] Agent.MentoringAgent: Starting mentoring session...: Mode: FULL, User: 1
+[INFO] Agent.MentoringAgent: Loading context...: Loading all sessions
+[INFO] Agent.MentoringAgent: Generating response...: Using LLM to formulate helpful response
+[INFO] Agent.MentoringAgent: [OK] Response generated: 1206 characters
+[INFO] AppFile: 
+🧠 Mentor: I love the enthusiasm! Since you're giving me the green light, I'll take the lead and start us off with the foundation of everything we're building: **The "Scaling Gap" and the Jinvexa Learning AI Architecture.** 🌟
+
+Think of it this way: Imagine a classroom with one amazing teacher and 30 students. Even the best teacher in the world can't possibly change every single sentence, exercise, and piece of feedback to fit the unique way each of those 30 brains works—all at the same time. 
+
+**That is the "Scaling Gap."** It's the distance between *standard* education (one size fits all) and *personalized* education (tailored to you).
+
+The **Jinvexa Learning AI Architecture** is designed specifically to close that gap. Instead of being a generic chatbot that just answers questions, Jinvexa is built as a **Pedagogical Engine**. This means it doesn't just "know things"—it knows *how to teach* them.
+
+Does that concept make sense? It's basically like moving from a digital encyclopedia to a digital mentor who actually understands your learning journey. 😊
+
+**Would you like to see how we actually achieve this through the "Five-Layer Architecture," or do you have a question about the Scaling Gap first?**
+[INFO] App: Waiting for user input: 
+👤 You...
+[INFO] AppFile: 
+👋 Thank you for mentoring! Keep learning!
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📊 TEACHING STATUS
+[INFO] App: Waiting for user input: 
+📎 Enter session ID...
+[INFO] AppFile: 
+📌 Course: Unknown
+[INFO] AppFile: 📝 Total Lessons: 0
+[INFO] AppFile: 📄 Text Files: 0
+[INFO] AppFile: 🎧 Audio Files: 0
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] App: Starting Jinvexa Learning AI
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📚 MODE 1: Goal-Based Learning
+[INFO] App: Waiting for user input: 
+🎯 What do you want to learn?...
+[INFO] App: Waiting for user input: 
+👤 Enter your user ID...
+[INFO] AppFile: ✅ Loaded existing profile for '1' (0 concepts)
+[INFO] AppFile: 
+🔄 Analyzing your goal and creating personalized learning plan...
+
+[INFO] Agent.LearningDiscoveryAgent: Loading user profile...: User: 1
+[INFO] Agent.LearningDiscoveryAgent: Analyzing user request...: User wants to learn: Software enginnering
+[INFO] Agent.LearningDiscoveryAgent: Extracting concepts...: Using LLM to identify main topics and subtopics
+[INFO] Agent.LearningDiscoveryAgent: [LearningDiscoveryAgent] Analyzing goal: Software enginnering
+[INFO] Agent.LearningDiscoveryAgent: [OK] Concepts extracted: Found: Software Engineering with 8 subtopics
+[INFO] Agent.LearningDiscoveryAgent: Generating personalized questions...: Creating questions based on your profile
+[INFO] Agent.LearningDiscoveryAgent: [OK] Questions ready: Generated 4 questions for you
+[INFO] Agent.LearningDiscoveryAgent: Building knowledge graph...: Mapping dependencies between concepts
+[INFO] Agent.LearningDiscoveryAgent: [OK] Knowledge graph ready: Created 9 nodes with dependencies
+[INFO] AppFile: Section: 💬 DISCOVERY CONVERSATION
+[INFO] AppFile: 
+[🤖 Agent]: 🎯 I understand you want to learn about **Software Engineering**. That's a great goal!
+
+🧠 Let me ask you a few questions to understand your background and create the perfect learning plan for you.
+
+💡 **Quick Tip:** Be honest about your knowledge - this helps me build the right path for you!
+[INFO] AppFile: 
+[🤖 Agent]: How would you rate your current experience with Software Engineering?
+[INFO] AppFile: Section: 💬 INTERACTIVE DISCOVERY
+[INFO] AppFile: Type 'quit' to skip questions and generate plan
+
+[INFO] App: Waiting for user input: 
+👤 Your answer...
+[INFO] AppFile: 
+📊 Learning Stats:
+[INFO] AppFile:    Sessions: 2 | Messages: 0
+[INFO] AppFile:    Known Concepts: 0
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] App: Starting Jinvexa Learning AI
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] App: Starting Jinvexa Learning AI
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] App: Starting Jinvexa Learning AI
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ──────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] App: Starting Jinvexa Learning AI
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📚 MODE 1: Goal-Based Learning
+[INFO] App: Waiting for user input: 
+🎯 What do you want to learn?...
+[INFO] App: Waiting for user input: 
+👤 Enter your user ID...
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] App: Starting Jinvexa Learning AI
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📚 MODE 1: Goal-Based Learning
+[INFO] App: Waiting for user input: 
+🎯 What do you want to learn?...
+[INFO] App: Waiting for user input: 
+👤 Enter your user ID...
+[INFO] AppFile: 🆕 Created new profile for '1'
+[INFO] AppFile: 
+🔄 Analyzing your goal and creating personalized learning plan...
+
+[INFO] Agent.LearningDiscoveryAgent: Loading user profile...: User: 1
+[INFO] Agent.LearningDiscoveryAgent: Analyzing user request...: User wants to learn: e.g., 'I want to become an AI Engineer'
+[INFO] Agent.LearningDiscoveryAgent: Extracting concepts...: Using LLM to identify main topics and subtopics
+[INFO] Agent.LearningDiscoveryAgent: [LearningDiscoveryAgent] Analyzing goal: e.g., 'I want to become an AI Engineer'
+[INFO] Agent.LearningDiscoveryAgent: [OK] Concepts extracted: Found: AI Engineering with 7 subtopics
+[INFO] Agent.LearningDiscoveryAgent: Generating personalized questions...: Creating questions based on your profile
+[INFO] Agent.LearningDiscoveryAgent: [OK] Questions ready: Generated 4 questions for you
+[INFO] Agent.LearningDiscoveryAgent: Building knowledge graph...: Mapping dependencies between concepts
+[INFO] Agent.LearningDiscoveryAgent: [OK] Knowledge graph ready: Created 15 nodes with dependencies
+[INFO] AppFile: Section: 💬 DISCOVERY CONVERSATION
+[INFO] AppFile: 
+[🤖 Agent]: 🎯 I understand you want to learn about **AI Engineering**. That's a great goal!
+
+🧠 Let me ask you a few questions to understand your background and create the perfect learning plan for you.
+
+💡 **Quick Tip:** Be honest about your knowledge - this helps me build the right path for you!
+[INFO] AppFile: 
+[🤖 Agent]: How would you rate your current experience with AI Engineering?
+[INFO] AppFile: Section: 💬 INTERACTIVE DISCOVERY
+[INFO] AppFile: Type 'quit' to skip questions and generate plan
+
+[INFO] App: Waiting for user input: 
+👤 Your answer...
+[INFO] AppFile: 
+🤖 Agent: What's your primary learning goal?
+[INFO] AppFile:    Options: Build projects, Career transition, Academic research, Personal interest, Interview preparation
+[INFO] AppFile:    Progress: 1/4
+[INFO] App: Waiting for user input: 
+👤 Your answer...
+[INFO] AppFile: 
+🤖 Agent: How many hours per week can you dedicate to learning?
+[INFO] AppFile:    Progress: 2/4
+[INFO] App: Waiting for user input: 
+👤 Your answer...
+[INFO] AppFile: 
+🤖 Agent: Is there anything specific within AI Engineering that excites you or you're concerned about?
+[INFO] AppFile:    Progress: 3/4
+[INFO] App: Waiting for user input: 
+👤 Your answer...
+[INFO] AppFile: 
+✅ Great! Learning plan generated!
+
+[INFO] AppFile: Section: 📚 YOUR PERSONALIZED LEARNING PLAN
+[INFO] AppFile: 
+📌 Topic: AI Engineering
+[INFO] AppFile: 🎯 Goal: career
+[INFO] AppFile: ⏱️ Time: 60 hours
+[INFO] AppFile: 
+📖 Knowledge Gaps:
+[INFO] AppFile:   • AI Engineering
+[INFO] AppFile:   • Machine Learning Algorithms
+[INFO] AppFile:   • Deep Learning & Neural Networks
+[INFO] AppFile:   • Natural Language Processing (NLP)
+[INFO] AppFile:   • Computer Vision
+[INFO] AppFile: 
+🗺️ Roadmap:
+[INFO] AppFile: 
+  📍 Phase 1: 📖 Fundamentals: AI Engineering, Machine Learning Algorithms & Deep Learning & Neural Networks
+[INFO] AppFile:      Learn essential concepts including AI Engineering, Machine Learning Algorithms, Deep Learning & Neural Networks, and more
+[INFO] AppFile:      Topics: AI Engineering, Machine Learning Algorithms, Deep Learning & Neural Networks, Natural Language Processing (NLP)
+[INFO] AppFile:      ⏱️ 16 hours
+[INFO] AppFile: 
+  📍 Phase 2: 📚 Building Skills: Computer Vision, Data Engineering & Pipelines & Model Deployment (MLOps)
+[INFO] AppFile:      Learn essential concepts including Computer Vision, Data Engineering & Pipelines, Model Deployment (MLOps), and more
+[INFO] AppFile:      Topics: Computer Vision, Data Engineering & Pipelines, Model Deployment (MLOps), Mathematics for AI (Linear Algebra, Calculus, Probability)
+[INFO] AppFile:      ⏱️ 16 hours
+[INFO] AppFile: 
+  📍 Phase 3: 📚 Building Skills: Machine Learning, Python & Statistics
+[INFO] AppFile:      Learn essential concepts including Machine Learning, Python, Statistics, and more
+[INFO] AppFile:      Topics: Machine Learning, Python, Statistics, Linear Algebra
+[INFO] AppFile:      ⏱️ 16 hours
+[INFO] AppFile: 
+  📍 Phase 4: 🚀 Advanced: Calculus, Programming Basics & Image Processing
+[INFO] AppFile:      Learn essential concepts for understanding AI Engineering
+[INFO] AppFile:      Topics: Calculus, Programming Basics, Image Processing
+[INFO] AppFile:      ⏱️ 12 hours
+[INFO] AppFile: 
+  📍 Phase 5: 🏆 Capstone: Computer Vision, Natural Language Processing (NLP) & Programming Basics
+[INFO] AppFile:      Apply everything you've learned by building a comprehensive AI Engineering project
+[INFO] AppFile:      Topics: Computer Vision, Natural Language Processing (NLP), Programming Basics
+[INFO] AppFile:      ⏱️ 8 hours
+[INFO] AppFile: 
+🛠️ Projects:
+[INFO] AppFile:   • 🚀 Getting Started with AI Engineering
+[INFO] AppFile:   • 💡 AI Engineering Application
+[INFO] AppFile: Section: ✅ Learning plan generated successfully!
+[INFO] AppFile: 
+📊 Learning Stats:
+[INFO] AppFile:    Sessions: 1 | Messages: 0
+[INFO] AppFile:    Known Concepts: 1
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] AppFile: Section: 🔐 JINVEXA LOGIN
+[INFO] AppFile: 
+📋 Available users: admin, alice, bob, carol, testuser
+[INFO] AppFile:    (Add users in .testauth file)
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: 👤 Username...
+[INFO] App: Waiting for user input: 🔑 Password...
+[INFO] AppFile: 
+✅ Welcome back, admin! 🎉
+[INFO] AppFile: Section: 
+[INFO] App: Starting Jinvexa Learning AI
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ──────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] AppFile: Section: 🔐 JINVEXA LOGIN
+[INFO] AppFile: 
+📋 Available users: admin, alice, bob, carol, testuser
+[INFO] AppFile:    (Users stored in MongoDB)
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: 👤 Username...
+[INFO] App: Waiting for user input: 🔑 Password...
+[WARNING] AppFile: ❌ Invalid username or password. 2 attempts remaining.
+[INFO] App: Waiting for user input: 👤 Username...
+[INFO] App: Waiting for user input: 🔑 Password...
+[WARNING] AppFile: ❌ Invalid username or password. 1 attempts remaining.
+[INFO] App: Waiting for user input: 👤 Username...
+[INFO] App: Waiting for user input: 🔑 Password...
+[INFO] AppFile: 
+✅ Welcome back, alice! 🎉
+[INFO] AppFile: Section: 
+[INFO] App: Starting Jinvexa Learning AI
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📚 MODE 1: Goal-Based Learning
+[INFO] App: Waiting for user input: 
+🎯 What do you want to learn?...
+[INFO] AppFile: 🆕 Created new profile for 'alice'
+[INFO] AppFile: 
+🔄 Analyzing your goal and creating personalized learning plan...
+
+[INFO] Agent.LearningDiscoveryAgent: Loading user profile...: User: alice
+[INFO] Agent.LearningDiscoveryAgent: Analyzing user request...: User wants to learn: Python Developer
+[INFO] Agent.LearningDiscoveryAgent: Extracting concepts...: Using LLM to identify main topics and subtopics
+[INFO] Agent.LearningDiscoveryAgent: [LearningDiscoveryAgent] Analyzing goal: Python Developer
+[INFO] Agent.LearningDiscoveryAgent: [OK] Concepts extracted: Found: Python Development with 9 subtopics
+[INFO] Agent.LearningDiscoveryAgent: Generating personalized questions...: Creating questions based on your profile
+[INFO] Agent.LearningDiscoveryAgent: [OK] Questions ready: Generated 4 questions for you
+[INFO] Agent.LearningDiscoveryAgent: Building knowledge graph...: Mapping dependencies between concepts
+[INFO] Agent.LearningDiscoveryAgent: [OK] Knowledge graph ready: Created 10 nodes with dependencies
+[INFO] AppFile: Section: 💬 DISCOVERY CONVERSATION
+[INFO] AppFile: 
+[🤖 Agent]: 🎯 I understand you want to learn about **Python Development**. That's a great goal!
+
+🧠 Let me ask you a few questions to understand your background and create the perfect learning plan for you.
+
+💡 **Quick Tip:** Be honest about your knowledge - this helps me build the right path for you!
+[INFO] AppFile: 
+[🤖 Agent]: How would you rate your current experience with Python Development?
+[INFO] AppFile: Section: 💬 INTERACTIVE DISCOVERY
+[INFO] AppFile: Type 'quit' to skip questions and generate plan
+
+[INFO] App: Waiting for user input: 
+👤 Your answer...
+[INFO] AppFile: 
+📊 Learning Stats:
+[INFO] AppFile:    Sessions: 1 | Messages: 0
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📊 PROGRESS TRACKING
+[INFO] AppFile: 
+📊 Progress for: alice
+[INFO] AppFile: ----------------------------------------
+[INFO] AppFile: 📚 Total Assignments: 0
+[INFO] AppFile: 📈 Average Score: 0%
+[INFO] AppFile: 🏆 Best Score: 0%
+[INFO] AppFile: 🎯 Latest Score: 0%
+[INFO] AppFile: 📊 Latest Grade: N/A
+[INFO] AppFile: 📉 Trend: Insufficient data
+[INFO] AppFile: ⭐ Performance: No assignments completed yet
+[INFO] AppFile: 
+🎓 Certificate Status: ❌ Not yet eligible
+[INFO] AppFile:    Requirements: 3 assignments with average >= 70%
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📊 USER LEARNING STATISTICS
+[INFO] AppFile: 
+📊 Stats for: alice
+[INFO] AppFile:    Sessions: 1
+[INFO] AppFile:    Messages: 0
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] AppFile: Section: 🔐 JINVEXA LOGIN
+[INFO] AppFile: 
+📋 Available users: admin, alice, bob, carol, testuser
+[INFO] AppFile:    (Users stored in MongoDB)
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: 👤 Username...
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] AppFile: Section: 🔐 JINVEXA LOGIN
+[INFO] AppFile: 
+📋 Available users: admin, alice, bob, carol, testuser
+[INFO] AppFile:    (Users stored in MongoDB)
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: 👤 Username...
+[INFO] App: Waiting for user input: 🔑 Password...
+[INFO] AppFile: 
+✅ Welcome back, carol! 🎉
+[INFO] AppFile: Section: 
+[INFO] App: Starting Jinvexa Learning AI for user: carol (ID: 4)
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!

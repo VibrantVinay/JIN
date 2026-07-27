@@ -13,6 +13,14 @@ from dataclasses import dataclass, asdict, field
 from Models.UserProfile import UserProfile
 from Models.LearningPlan import LearningPlan
 
+# Try to import MongoDB config (optional)
+try:
+    from Config.db_config import mongodb, get_collection
+    MONGODB_AVAILABLE = True
+except ImportError:
+    MONGODB_AVAILABLE = False
+    print("⚠️ MongoDB not available. Install pymongo and configure db_config.py")
+
 
 @dataclass
 class SessionMemory:
@@ -56,7 +64,7 @@ class SessionMemory:
 class MemoryHandler:
     """
     Handles persistent memory storage for the Learning Discovery Agent.
-    Supports JSON file storage.
+    Supports: JSON (default), MongoDB, SQLite
     """
     
     def __init__(self, storage_dir: str = "memory_storage", storage_type: str = "json"):
@@ -64,22 +72,80 @@ class MemoryHandler:
         Initialize the Memory Handler
         
         Args:
-            storage_dir: Directory for storing memory files
-            storage_type: "json" (default)
+            storage_dir: Directory for storing memory files (JSON only)
+            storage_type: "json" (default), "mongodb", "sqlite"
         """
         self.storage_dir = Path(storage_dir)
         self.storage_type = storage_type
-        
-        # Create storage directories
-        self.storage_dir.mkdir(exist_ok=True)
-        (self.storage_dir / "sessions").mkdir(exist_ok=True)
-        (self.storage_dir / "profiles").mkdir(exist_ok=True)
         
         # In-memory cache for fast access
         self._cache: Dict[str, SessionMemory] = {}
         self._profile_cache: Dict[str, UserProfile] = {}
         
-        print(f"💾 MemoryHandler initialized at: {self.storage_dir}")
+        # Initialize storage based on type
+        if storage_type == "json":
+            self._init_json_storage()
+        elif storage_type == "mongodb":
+            self._init_mongodb_storage()
+        elif storage_type == "sqlite":
+            self._init_sqlite_storage()
+        else:
+            raise ValueError(f"Unsupported storage type: {storage_type}")
+        
+        print(f"💾 MemoryHandler initialized (Storage: {storage_type.upper()})")
+    
+    # ==================== INITIALIZATION ====================
+    
+    def _init_json_storage(self):
+        """Initialize JSON storage directories."""
+        self.storage_dir.mkdir(exist_ok=True)
+        (self.storage_dir / "sessions").mkdir(exist_ok=True)
+        (self.storage_dir / "profiles").mkdir(exist_ok=True)
+        (self.storage_dir / "assignments").mkdir(exist_ok=True)
+        (self.storage_dir / "progress").mkdir(exist_ok=True)
+    
+    def _init_mongodb_storage(self):
+        """Initialize MongoDB collections."""
+        if not MONGODB_AVAILABLE:
+            print("⚠️ MongoDB not available. Falling back to JSON storage.")
+            self.storage_type = "json"
+            self._init_json_storage()
+            return
+        
+        if not mongodb.is_connected():
+            print("⚠️ MongoDB not connected. Falling back to JSON storage.")
+            self.storage_type = "json"
+            self._init_json_storage()
+            return
+        
+        # Collections will be created on first write
+        self._collections = {
+            "sessions": get_collection("sessions"),
+            "profiles": get_collection("profiles"),
+            "lessons": get_collection("lessons"),
+            "audio": get_collection("audio"),
+            "manifests": get_collection("manifests"),
+            "assignments": get_collection("assignments"),
+            "results": get_collection("results"),
+            "progress": get_collection("progress"),
+            "mentoring_conversations": get_collection("mentoring_conversations"),
+            "mentoring_messages": get_collection("mentoring_messages"),
+            "knowledge_graph": get_collection("knowledge_graph"),
+            "dependencies": get_collection("dependencies"),
+            "user_activity": get_collection("user_activity")
+        }
+        print("✅ MongoDB collections ready")
+    
+    def _init_sqlite_storage(self):
+        """Initialize SQLite storage (for mentoring)."""
+        # SQLite is already handled in mentoring methods
+        pass
+    
+    def _get_collection(self, name: str):
+        """Get MongoDB collection."""
+        if self.storage_type == "mongodb" and hasattr(self, '_collections'):
+            return self._collections.get(name)
+        return None
     
     # ==================== SESSION MANAGEMENT ====================
     
@@ -113,7 +179,10 @@ class MemoryHandler:
         self._cache[session_id] = session
         
         # Save to storage
-        self._save_session(session)
+        if self.storage_type == "json":
+            self._save_session_json(session)
+        elif self.storage_type == "mongodb":
+            self._save_session_mongodb(session)
         
         print(f"✅ Session created: {session_id[:20]}...")
         
@@ -126,7 +195,13 @@ class MemoryHandler:
             return self._cache[session_id]
         
         # Check storage
-        session = self._load_session(session_id)
+        if self.storage_type == "json":
+            session = self._load_session_json(session_id)
+        elif self.storage_type == "mongodb":
+            session = self._load_session_mongodb(session_id)
+        else:
+            session = None
+        
         if session:
             self._cache[session_id] = session
         return session
@@ -139,7 +214,10 @@ class MemoryHandler:
         self._cache[session.session_id] = session
         
         # Update storage
-        self._save_session(session)
+        if self.storage_type == "json":
+            self._save_session_json(session)
+        elif self.storage_type == "mongodb":
+            self._save_session_mongodb(session)
     
     def delete_session(self, session_id: str):
         """Delete a session"""
@@ -148,51 +226,18 @@ class MemoryHandler:
             del self._cache[session_id]
         
         # Remove from storage
-        self._delete_session(session_id)
+        if self.storage_type == "json":
+            self._delete_session_json(session_id)
+        elif self.storage_type == "mongodb":
+            self._delete_session_mongodb(session_id)
     
     def get_user_sessions(self, user_id: str, limit: int = 10) -> List[SessionMemory]:
         """Get all sessions for a user"""
-        sessions = []
-        session_dir = self.storage_dir / "sessions"
-        
-        if session_dir.exists():
-            # Get all session files for this user
-            for file_path in session_dir.glob("*.json"):
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                    if data.get("user_id") == user_id:
-                        # Parse the data properly
-                        parsed_data = self._parse_session_data(data)
-                        session = SessionMemory.from_dict(parsed_data)
-                        sessions.append(session)
-                except Exception as e:
-                    print(f"⚠️ Error loading session {file_path}: {e}")
-                    continue
-        
-        # Sort by created_at (newest first) and limit
-        sessions.sort(key=lambda x: x.created_at, reverse=True)
-        return sessions[:limit]
-    
-    def _parse_session_data(self, data: Dict) -> Dict:
-        """Parse session data, converting JSON strings back to objects"""
-        parsed = data.copy()
-        
-        # Keys that should be parsed as JSON
-        json_keys = ["conversation_history", "extracted_data", "concepts", 
-                     "knowledge_graph", "gap_analysis", "learning_plan", 
-                     "user_profile", "metadata"]
-        
-        for key in json_keys:
-            if key in parsed and parsed[key] is not None and isinstance(parsed[key], str):
-                try:
-                    parsed[key] = json.loads(parsed[key])
-                except:
-                    parsed[key] = None
-            elif key in parsed and parsed[key] is None:
-                parsed[key] = None
-        
-        return parsed
+        if self.storage_type == "json":
+            return self._get_user_sessions_json(user_id, limit)
+        elif self.storage_type == "mongodb":
+            return self._get_user_sessions_mongodb(user_id, limit)
+        return []
     
     def add_conversation_message(self, session_id: str, role: str, message: str):
         """Add a message to session conversation history"""
@@ -228,7 +273,10 @@ class MemoryHandler:
         self._profile_cache[profile.user_id] = profile
         
         # Save to storage
-        self._save_profile(profile)
+        if self.storage_type == "json":
+            self._save_profile_json(profile)
+        elif self.storage_type == "mongodb":
+            self._save_profile_mongodb(profile)
     
     def load_profile(self, user_id: str) -> Optional[UserProfile]:
         """Load a user profile"""
@@ -237,7 +285,13 @@ class MemoryHandler:
             return self._profile_cache[user_id]
         
         # Check storage
-        profile = self._load_profile(user_id)
+        if self.storage_type == "json":
+            profile = self._load_profile_json(user_id)
+        elif self.storage_type == "mongodb":
+            profile = self._load_profile_mongodb(user_id)
+        else:
+            profile = None
+        
         if profile:
             self._profile_cache[user_id] = profile
         return profile
@@ -249,13 +303,21 @@ class MemoryHandler:
             del self._profile_cache[user_id]
         
         # Remove from storage
-        self._delete_profile(user_id)
+        if self.storage_type == "json":
+            self._delete_profile_json(user_id)
+        elif self.storage_type == "mongodb":
+            self._delete_profile_mongodb(user_id)
     
     def list_profiles(self) -> List[str]:
         """List all user IDs with profiles"""
-        profile_dir = self.storage_dir / "profiles"
-        if profile_dir.exists():
-            return [f.stem for f in profile_dir.glob("*.json")]
+        if self.storage_type == "json":
+            profile_dir = self.storage_dir / "profiles"
+            if profile_dir.exists():
+                return [f.stem for f in profile_dir.glob("*.json")]
+        elif self.storage_type == "mongodb":
+            collection = self._get_collection("profiles")
+            if collection is not None:
+                return collection.distinct("user_id")
         return []
     
     # ==================== STATISTICS AND METRICS ====================
@@ -304,17 +366,22 @@ class MemoryHandler:
             "learning_plans_generated": 0
         }
         
-        # Count sessions from JSON files
-        session_dir = self.storage_dir / "sessions"
-        if session_dir.exists():
-            stats["total_sessions"] = len(list(session_dir.glob("*.json")))
-            stats["total_conversations"] = stats["total_sessions"] * 5
+        if self.storage_type == "json":
+            session_dir = self.storage_dir / "sessions"
+            if session_dir.exists():
+                stats["total_sessions"] = len(list(session_dir.glob("*.json")))
+                stats["total_conversations"] = stats["total_sessions"] * 5
+        elif self.storage_type == "mongodb":
+            collection = self._get_collection("sessions")
+            if collection is not None:
+                stats["total_sessions"] = collection.count_documents({})
+                stats["total_conversations"] = stats["total_sessions"] * 5
         
         return stats
     
-    # ==================== STORAGE BACKEND METHODS ====================
+    # ==================== JSON BACKEND METHODS ====================
     
-    def _save_session(self, session: SessionMemory):
+    def _save_session_json(self, session: SessionMemory):
         """Save session to JSON storage"""
         data = session.to_dict()
         
@@ -335,7 +402,7 @@ class MemoryHandler:
         with open(session_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
     
-    def _load_session(self, session_id: str) -> Optional[SessionMemory]:
+    def _load_session_json(self, session_id: str) -> Optional[SessionMemory]:
         """Load session from JSON storage"""
         session_file = self.storage_dir / "sessions" / f"{session_id}.json"
         if session_file.exists():
@@ -352,13 +419,34 @@ class MemoryHandler:
         
         return None
     
-    def _delete_session(self, session_id: str):
-        """Delete session from storage"""
+    def _delete_session_json(self, session_id: str):
+        """Delete session from JSON storage"""
         session_file = self.storage_dir / "sessions" / f"{session_id}.json"
         if session_file.exists():
             session_file.unlink()
     
-    def _save_profile(self, profile: UserProfile):
+    def _get_user_sessions_json(self, user_id: str, limit: int = 10) -> List[SessionMemory]:
+        """Get user sessions from JSON storage"""
+        sessions = []
+        session_dir = self.storage_dir / "sessions"
+        
+        if session_dir.exists():
+            for file_path in session_dir.glob("*.json"):
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    if data.get("user_id") == user_id:
+                        parsed_data = self._parse_session_data(data)
+                        session = SessionMemory.from_dict(parsed_data)
+                        sessions.append(session)
+                except Exception as e:
+                    print(f"⚠️ Error loading session {file_path}: {e}")
+                    continue
+        
+        sessions.sort(key=lambda x: x.created_at, reverse=True)
+        return sessions[:limit]
+    
+    def _save_profile_json(self, profile: UserProfile):
         """Save profile to JSON storage"""
         data = {
             "user_id": profile.user_id,
@@ -371,7 +459,7 @@ class MemoryHandler:
         with open(profile_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
     
-    def _load_profile(self, user_id: str) -> Optional[UserProfile]:
+    def _load_profile_json(self, user_id: str) -> Optional[UserProfile]:
         """Load profile from JSON storage"""
         profile_file = self.storage_dir / "profiles" / f"{user_id}.json"
         if profile_file.exists():
@@ -383,11 +471,119 @@ class MemoryHandler:
                 print(f"⚠️ Error loading profile {user_id}: {e}")
         return None
     
-    def _delete_profile(self, user_id: str):
-        """Delete profile from storage"""
+    def _delete_profile_json(self, user_id: str):
+        """Delete profile from JSON storage"""
         profile_file = self.storage_dir / "profiles" / f"{user_id}.json"
         if profile_file.exists():
             profile_file.unlink()
+    
+    def _parse_session_data(self, data: Dict) -> Dict:
+        """Parse session data, converting JSON strings back to objects"""
+        parsed = data.copy()
+        
+        json_keys = ["conversation_history", "extracted_data", "concepts", 
+                     "knowledge_graph", "gap_analysis", "learning_plan", 
+                     "user_profile", "metadata"]
+        
+        for key in json_keys:
+            if key in parsed and parsed[key] is not None and isinstance(parsed[key], str):
+                try:
+                    parsed[key] = json.loads(parsed[key])
+                except:
+                    parsed[key] = None
+            elif key in parsed and parsed[key] is None:
+                parsed[key] = None
+        
+        return parsed
+    
+    # ==================== MONGODB BACKEND METHODS (FIXED) ====================
+    
+    def _save_session_mongodb(self, session: SessionMemory):
+        """Save session to MongoDB"""
+        collection = self._get_collection("sessions")
+        if collection is None:
+            print("⚠️ MongoDB collection not available")
+            return
+        
+        data = session.to_dict()
+        
+        collection.update_one(
+            {"session_id": session.session_id},
+            {"$set": data},
+            upsert=True
+        )
+    
+    def _load_session_mongodb(self, session_id: str) -> Optional[SessionMemory]:
+        """Load session from MongoDB"""
+        collection = self._get_collection("sessions")
+        if collection is None:
+            return None
+        
+        data = collection.find_one({"session_id": session_id})
+        if data:
+            if "_id" in data:
+                del data["_id"]
+            return SessionMemory.from_dict(data)
+        return None
+    
+    def _delete_session_mongodb(self, session_id: str):
+        """Delete session from MongoDB"""
+        collection = self._get_collection("sessions")
+        if collection is not None:
+            collection.delete_one({"session_id": session_id})
+    
+    def _get_user_sessions_mongodb(self, user_id: str, limit: int = 10) -> List[SessionMemory]:
+        """Get user sessions from MongoDB"""
+        collection = self._get_collection("sessions")
+        if collection is None:
+            return []
+        
+        sessions = []
+        cursor = collection.find({"user_id": user_id}).sort("created_at", -1).limit(limit)
+        
+        for data in cursor:
+            if "_id" in data:
+                del data["_id"]
+            sessions.append(SessionMemory.from_dict(data))
+        
+        return sessions
+    
+    def _save_profile_mongodb(self, profile: UserProfile):
+        """Save profile to MongoDB"""
+        collection = self._get_collection("profiles")
+        if collection is None:
+            print("⚠️ MongoDB collection not available")
+            return
+        
+        data = {
+            "user_id": profile.user_id,
+            "profile_data": profile.to_dict(),
+            "created_at": profile.created_at,
+            "updated_at": profile.updated_at
+        }
+        
+        collection.update_one(
+            {"user_id": profile.user_id},
+            {"$set": data},
+            upsert=True
+        )
+    
+    def _load_profile_mongodb(self, user_id: str) -> Optional[UserProfile]:
+        """Load profile from MongoDB"""
+        collection = self._get_collection("profiles")
+        if collection is None:
+            return None
+        
+        data = collection.find_one({"user_id": user_id})
+        if data:
+            return UserProfile.from_dict(data.get("profile_data", {}))
+        return None
+    
+    def _delete_profile_mongodb(self, user_id: str):
+        """Delete profile from MongoDB"""
+        collection = self._get_collection("profiles")
+        if collection is not None:
+            collection.delete_one({"user_id": user_id})
     
     # ==================== UTILITY METHODS ====================
     
@@ -399,23 +595,30 @@ class MemoryHandler:
     def cleanup_old_sessions(self, days: int = 30):
         """Delete sessions older than specified days"""
         cutoff = datetime.now() - timedelta(days=days)
-        session_dir = self.storage_dir / "sessions"
         
-        if session_dir.exists():
-            for file_path in session_dir.glob("*.json"):
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                    created_at = datetime.fromisoformat(data.get("created_at", ""))
-                    if created_at < cutoff:
-                        file_path.unlink()
-                except:
-                    continue
+        if self.storage_type == "json":
+            session_dir = self.storage_dir / "sessions"
+            if session_dir.exists():
+                for file_path in session_dir.glob("*.json"):
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                        created_at = datetime.fromisoformat(data.get("created_at", ""))
+                        if created_at < cutoff:
+                            file_path.unlink()
+                    except:
+                        continue
+        elif self.storage_type == "mongodb":
+            collection = self._get_collection("sessions")
+            if collection is not None:
+                collection.delete_many({
+                    "created_at": {"$lt": cutoff.isoformat()}
+                })
     
     # ==================== LESSON MANAGEMENT (TeachingAgent) ====================
 
     def save_lesson(self, session_id: str, topic: str, phase_title: str, lesson_text: str) -> str:
-        """Save a lesson text file. Exact same logic as TeachingAgent._save_text_lesson_sync"""
+        """Save a lesson text file."""
         import re
         from datetime import datetime
         from pathlib import Path
@@ -435,10 +638,24 @@ class MemoryHandler:
             f.write("="*60 + "\n\n")
             f.write(lesson_text)
         
+        # Also save metadata to MongoDB if available
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("lessons")
+            if collection is not None:
+                collection.insert_one({
+                    "session_id": session_id,
+                    "topic": topic,
+                    "phase_title": phase_title,
+                    "file_path": str(filepath),
+                    "file_size": len(lesson_text),
+                    "created_at": datetime.now().isoformat(),
+                    "metadata": {}
+                })
+        
         return str(filepath)
 
     def save_manifest(self, session_id: str, manifest: list, main_topic: str):
-        """Save manifest JSON and readable TXT. Exact same logic as TeachingAgent._save_manifest"""
+        """Save manifest JSON and readable TXT."""
         import json
         from datetime import datetime
         from pathlib import Path
@@ -458,7 +675,17 @@ class MemoryHandler:
         with open(manifest_file, 'w', encoding='utf-8') as f:
             json.dump(manifest_data, f, indent=2, ensure_ascii=False)
         
-        # Also save a human-readable version
+        # Also save to MongoDB if available
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("manifests")
+            if collection is not None:
+                collection.update_one(
+                    {"session_id": session_id},
+                    {"$set": manifest_data},
+                    upsert=True
+                )
+        
+        # Save human-readable version
         readable_file = manifest_dir / f"{session_id}_watch_order.txt"
         with open(readable_file, 'w', encoding='utf-8') as f:
             f.write(f"Course: {main_topic}\n")
@@ -484,7 +711,7 @@ class MemoryHandler:
                 f.write(f"   Type: {content_type.upper()}\n\n")
 
     def save_audio_metadata(self, session_id: str, topic: str, audio_file: str, gender: str):
-        """Save audio metadata. Exact same logic as TeachingAgent._save_audio_metadata"""
+        """Save audio metadata."""
         import json
         from datetime import datetime
         from pathlib import Path
@@ -513,9 +740,21 @@ class MemoryHandler:
         
         with open(audio_metadata_file, 'w', encoding='utf-8') as f:
             json.dump(existing, f, indent=2, ensure_ascii=False)
+        
+        # Also save to MongoDB if available
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("audio")
+            if collection is not None:
+                collection.insert_one({
+                    "session_id": session_id,
+                    "topic": topic,
+                    "gender": gender,
+                    "file_path": audio_file,
+                    "created_at": datetime.now().isoformat()
+                })
 
     def save_course_metadata(self, session_id: str, course_content: dict):
-        """Save course metadata. Exact same logic as TeachingAgent._save_course_metadata"""
+        """Save course metadata."""
         import json
         from pathlib import Path
         
@@ -527,7 +766,7 @@ class MemoryHandler:
             json.dump(course_content, f, indent=2, ensure_ascii=False)
 
     def get_lesson_content(self, lesson_file: str) -> str:
-        """Read lesson content from file. Exact same logic as TeachingAgent.get_lesson_content"""
+        """Read lesson content from file."""
         from pathlib import Path
         try:
             filepath = Path(lesson_file)
@@ -550,10 +789,21 @@ class MemoryHandler:
                     return json.load(f)
             except:
                 pass
+        
+        # Try MongoDB if available
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("manifests")
+            if collection is not None:
+                data = collection.find_one({"session_id": session_id})
+                if data:
+                    if "_id" in data:
+                        del data["_id"]
+                    return data
+        
         return {}
 
     def list_sessions_with_plans(self) -> list:
-        """List all sessions that have learning plans. Exact same logic as TeachingAgent.list_available_sessions"""
+        """List all sessions that have learning plans."""
         import json
         from pathlib import Path
         
@@ -590,7 +840,7 @@ class MemoryHandler:
         return sessions
 
     def list_generated_lessons(self, session_id: str) -> list:
-        """List generated lessons for a session. Exact same logic as TeachingAgent.list_generated_lessons"""
+        """List generated lessons for a session."""
         import json
         from pathlib import Path
         
@@ -620,7 +870,7 @@ class MemoryHandler:
     # ==================== ASSIGNMENT MANAGEMENT ====================
 
     def save_assignment(self, assignment: dict) -> str:
-        """Save assignment to file. Exact same logic as AssignmentGeneratorAgent._save_assignment"""
+        """Save assignment to file."""
         import json
         from pathlib import Path
         
@@ -636,7 +886,7 @@ class MemoryHandler:
         return str(assignment_file)
 
     def get_assignment(self, assignment_id: str) -> dict:
-        """Get assignment by ID. Exact same logic as AssignmentGeneratorAgent.get_assignment"""
+        """Get assignment by ID."""
         import json
         from pathlib import Path
         
@@ -651,7 +901,7 @@ class MemoryHandler:
         return None
 
     def list_assignments(self, session_id: str) -> list:
-        """List all assignments for a session. Exact same logic as AssignmentGeneratorAgent.list_assignments"""
+        """List all assignments for a session."""
         import json
         from pathlib import Path
         
@@ -675,7 +925,7 @@ class MemoryHandler:
         return sorted(assignments, key=lambda x: x.get("generated_at", ""), reverse=True)
 
     def save_assignment_result(self, user_id: str, assignment_id: str, result: dict) -> str:
-        """Save evaluation result and update profile. Exact same logic as AssignmentEvaluatorAgent._save_result"""
+        """Save evaluation result and update profile."""
         import json
         from datetime import datetime
         from pathlib import Path
@@ -701,7 +951,7 @@ class MemoryHandler:
         return str(result_file)
 
     def get_user_results(self, user_id: str) -> list:
-        """Get all results for a user. Exact same logic as AssignmentTrackerAgent._get_user_results"""
+        """Get all results for a user."""
         import json
         from pathlib import Path
         
@@ -719,7 +969,7 @@ class MemoryHandler:
         return results
 
     def save_progress_summary(self, user_id: str, progress: dict) -> str:
-        """Save progress summary. Exact same logic as AssignmentTrackerAgent.save_progress_summary"""
+        """Save progress summary."""
         import json
         from pathlib import Path
         
@@ -734,7 +984,7 @@ class MemoryHandler:
     # ==================== MENTORING (SQLite) MANAGEMENT ====================
 
     def init_mentoring_db(self):
-        """Initialize mentoring SQLite database. Exact same logic as MentoringAgent._init_database"""
+        """Initialize mentoring SQLite database."""
         import sqlite3
         from pathlib import Path
         
@@ -793,7 +1043,7 @@ class MemoryHandler:
             self.init_mentoring_db()
 
     def create_mentoring_conversation(self, user_id: str, session_id: str = None, mode: str = "session") -> str:
-        """Create a new conversation. Exact same logic as MentoringAgent.create_conversation"""
+        """Create a new conversation."""
         from datetime import datetime
         
         self._ensure_mentoring_db()
@@ -821,7 +1071,7 @@ class MemoryHandler:
         return str(self.mentoring_cursor.lastrowid)
 
     def add_mentoring_message(self, conversation_id: str, role: str, content: str):
-        """Add a message to a conversation. Exact same logic as MentoringAgent.add_message"""
+        """Add a message to a conversation."""
         from datetime import datetime
         
         self._ensure_mentoring_db()
@@ -842,7 +1092,7 @@ class MemoryHandler:
         self.mentoring_conn.commit()
 
     def get_mentoring_conversation_history(self, conversation_id: str, limit: int = 20) -> list:
-        """Get conversation history. Exact same logic as MentoringAgent.get_conversation_history"""
+        """Get conversation history."""
         self._ensure_mentoring_db()
         
         self.mentoring_cursor.execute("""
@@ -855,7 +1105,7 @@ class MemoryHandler:
         return [{"role": row[0], "content": row[1], "timestamp": row[2]} for row in rows[::-1]]
 
     def get_mentoring_conversation_info(self, conversation_id: str) -> dict:
-        """Get conversation metadata. Exact same logic as MentoringAgent.get_conversation_info"""
+        """Get conversation metadata."""
         self._ensure_mentoring_db()
         
         self.mentoring_cursor.execute("""
@@ -878,7 +1128,7 @@ class MemoryHandler:
         return {}
 
     def list_mentoring_conversations(self, user_id: str) -> list:
-        """List all conversations for a user. Exact same logic as MentoringAgent.list_conversations"""
+        """List all conversations for a user."""
         import json
         from pathlib import Path
         
@@ -919,7 +1169,7 @@ class MemoryHandler:
         return conversations
 
     def get_mentoring_session_content(self, session_id: str) -> dict:
-        """Get cached session content or load from manifest. Exact same logic as MentoringAgent._get_session_content"""
+        """Get cached session content or load from manifest."""
         import json
         from datetime import datetime
         from pathlib import Path
@@ -990,7 +1240,7 @@ class MemoryHandler:
             return {"content": "", "topics": [], "phases": []}
 
     def get_mentoring_all_user_content(self, user_id: str) -> dict:
-        """Get all content from all sessions of a user. Exact same logic as MentoringAgent._get_all_user_content"""
+        """Get all content from all sessions of a user."""
         all_topics = []
         all_phases = []
         all_content = []
@@ -1012,7 +1262,7 @@ class MemoryHandler:
         }
 
     def manage_mentoring_history(self, conversation_id: str):
-        """Manage conversation history by summarizing old messages. Exact same logic as MentoringAgent._manage_conversation_history"""
+        """Manage conversation history by summarizing old messages."""
         self._ensure_mentoring_db()
         
         try:
@@ -1043,7 +1293,7 @@ class MemoryHandler:
             print(f"⚠️ History management error: {e}")
 
     def garbage_collect_mentoring(self, max_conversation_age_days: int = 7, max_messages_per_session: int = 50):
-        """Clean up old conversations. Exact same logic as MentoringAgent.garbage_collect"""
+        """Clean up old conversations."""
         from datetime import datetime, timedelta
         
         self._ensure_mentoring_db()
@@ -1091,7 +1341,7 @@ class MemoryHandler:
             print(f"⚠️ Garbage collection error: {e}")
 
     def get_mentoring_session_topic(self, session_id: str) -> str:
-        """Get the topic of a session. Exact same logic as MentoringAgent.get_session_topic"""
+        """Get the topic of a session."""
         import json
         from pathlib import Path
         
@@ -1113,6 +1363,10 @@ class MemoryHandler:
         """Close mentoring database connection."""
         if hasattr(self, 'mentoring_conn'):
             self.mentoring_conn.close()
+
+    def close(self):
+        """Close all connections."""
+        self.close_mentoring_db()
 
     def export_data(self, user_id: str, export_dir: str = "exports") -> str:
         """Export all data for a user"""

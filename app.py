@@ -27,6 +27,7 @@ from Agents.AssignmentGeneratorAgent import AssignmentGeneratorAgent
 from Agents.AssignmentEvaluatorAgent import AssignmentEvaluatorAgent
 from Agents.AssignmentTrackerAgent import AssignmentTrackerAgent
 from Agents.MentoringAgent import MentoringAgent
+from Agents.AuthManager import AuthManager
 from Models.UserProfile import UserProfile
 from Config.Config import Config
 
@@ -145,12 +146,15 @@ class JinvexaApp:
         self._setup_logging()
         # Detect terminal width for aligned UI
         self.terminal_width = self._get_terminal_width()
-        # Detect terminal width for aligned UI
-        self.terminal_width = self._get_terminal_width()
         
         # Create necessary directories
         Path("profiles").mkdir(exist_ok=True)
         Path(STORAGE_DIR).mkdir(exist_ok=True)
+        
+        # Initialize Auth Manager FIRST
+        self.auth = AuthManager()
+        self.current_user_id: Optional[int] = None
+        self.current_username: Optional[str] = None
         
         # Initialize Config
         self.config = Config()
@@ -213,8 +217,58 @@ class JinvexaApp:
         
         self.current_profile = None
     
+    def display_login(self) -> bool:
+        """Display login screen and authenticate user."""
+        self.show_section("🔐 JINVEXA LOGIN")
+        
+        users = self.auth.list_users()
+        if users:
+            user_display = [u.get("username") for u in users]
+            self.show_message(f"\n📋 Available users: {', '.join(user_display)}")
+        else:
+            self.show_message("\n📋 No users found. Creating default users...")
+            default_users = [
+                ("admin", "admin123"),
+                ("alice", "alice123"),
+                ("bob", "bob123"),
+                ("carol", "carol123"),
+                ("testuser", "test123")
+            ]
+            for u, p in default_users:
+                self.auth.add_user(u, p)
+            users = self.auth.list_users()
+            user_display = [u.get("username") for u in users]
+            self.show_message(f"\n📋 Available users: {', '.join(user_display)}")
+        
+        self.show_message("   (Users stored in MongoDB)")
+        self.show_message("")
+        
+        max_attempts = 3
+        attempts = 0
+        
+        while attempts < max_attempts:
+            username = self.get_user_input("👤 Username")
+            password = self.get_user_input("🔑 Password")
+            
+            user_id = self.auth.authenticate(username, password)
+            if user_id:
+                self.current_user_id = user_id
+                self.current_username = username
+                self.show_message(f"\n✅ Welcome back, {username}! 🎉")
+                self.show_section("", char="=")
+                return True
+            else:
+                attempts += 1
+                remaining = max_attempts - attempts
+                self.show_message(f"❌ Invalid username or password. {remaining} attempts remaining.", "WARNING")
+        
+        self.show_message("\n❌ Too many failed attempts. Exiting...", "ERROR")
+        return False
+    
     def display_banner(self):
-        """Display application banner"""
+        """Display application banner with user info."""
+        username = self.current_username if self.current_username else "Not Logged In"
+        user_id = self.current_user_id if self.current_user_id else "N/A"
         print(f"""
 ╔══════════════════════════════════════════════════════════════════╗
 ║                                                                  ║
@@ -225,22 +279,18 @@ class JinvexaApp:
 ║                                                                  ║
 ║     🤖 Brain: {self.llm_client.model:<20}                       ║
 ║     💾 Storage: {STORAGE_TYPE.upper():<8}                       ║
+║     👤 User: {username} (ID: {user_id})                         ║
 ║                                                                  ║
 ╚══════════════════════════════════════════════════════════════════╝
         """)
-        self.log_info("Starting Jinvexa Learning AI")
+        self.log_info(f"Starting Jinvexa Learning AI for user: {username} (ID: {user_id})")
     
     def _setup_logging(self):
-        """Setup structured logging for all agents.
-        
-        Output format: [INFO] Agent.AgentName: message
-        Logs to both console and jinvexa.log file for future GUI integration.
-        """
-        # Formatter used for both console and file (console content will be cleaned of emojis)
+        """Setup structured logging for all agents."""
         console_formatter = logging.Formatter('[%(levelname)s] %(name)s: %(message)s')
         file_formatter = logging.Formatter('[%(levelname)s] %(name)s: %(message)s')
 
-        # Force UTF-8 encoding for Windows console: wrap streams with codecs writer
+        # Force UTF-8 encoding for Windows console
         if sys.platform == "win32":
             try:
                 sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
@@ -251,12 +301,12 @@ class JinvexaApp:
             except Exception:
                 pass
 
-        # Console handler (safe for Windows when wrapped)
+        # Console handler
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setFormatter(console_formatter)
         console_handler.setLevel(logging.INFO)
 
-        # File handler (preserve emojis) with explicit utf-8 encoding
+        # File handler
         file_handler = logging.FileHandler('jinvexa.log', encoding='utf-8')
         file_handler.setFormatter(file_formatter)
         file_handler.setLevel(logging.INFO)
@@ -268,11 +318,10 @@ class JinvexaApp:
         root_logger.addHandler(console_handler)
         root_logger.addHandler(file_handler)
 
-        # Create a file-only logger to avoid console duplication
+        # File-only logger
         file_only_logger = logging.getLogger("AppFile")
         file_only_logger.setLevel(logging.INFO)
         file_only_logger.propagate = False
-        # Clear any existing handlers and attach file handler only
         file_only_logger.handlers.clear()
         file_only_logger.addHandler(file_handler)
     
@@ -297,12 +346,7 @@ class JinvexaApp:
         return input(f"{prompt}: ").strip()
     
     def show_message(self, message: str, level: str = "INFO", log_only: bool = False):
-        """Centralized message display (professional Claude Code style).
-
-        On Windows consoles that do not support emoji, emojis are stripped for
-        a clean, professional output while the file log preserves emojis.
-        """
-        # Clean emojis for consoles that likely cannot render them
+        """Centralized message display."""
         clean_message = message
         if sys.platform == "win32" and not self._supports_emoji():
             try:
@@ -324,21 +368,18 @@ class JinvexaApp:
             except Exception:
                 clean_message = message
 
-        # Log full message to file-only logger (preserves emojis)
         self._log_only(message, level)
 
-        # Print cleaned message to console (unless log_only)
         if not log_only:
             print(clean_message)
     
     def show_section(self, title: str, char: str = "─", length: int = 60):
-        """Centralized section display with Claude Code style."""
+        """Centralized section display."""
         self._log_only(f"Section: {title}")
         if not title:
             print(f"\n{char * length}")
             return
 
-        # Create a single-line header with padding
         padding = max(0, length - len(title) - 4)
         print(f"\n{char * 2} {title} {char * padding}")
 
@@ -350,7 +391,7 @@ class JinvexaApp:
             return 80
 
     def _log_only(self, message: str, level: str = "INFO"):
-        """Log to the file-only logger so console output stays clean."""
+        """Log to file-only logger."""
         logger = logging.getLogger("AppFile")
         if level == "INFO":
             logger.info(message)
@@ -411,48 +452,47 @@ class JinvexaApp:
         print(bottom)
 
     def _supports_emoji(self) -> bool:
-        """Detect simple terminal emoji support heuristics."""
+        """Detect simple terminal emoji support."""
         try:
-            # Windows Terminal (WT) usually supports emoji
             if 'WT_SESSION' in os.environ:
                 return True
-            # Common terminals set TERM_PROGRAM (e.g., VSCode)
             if 'TERM_PROGRAM' in os.environ:
                 return True
             return False
         except Exception:
             return False
     
+    # ==================== MODE METHODS ====================
+    
     async def run_mode_1_goal(self):
         """Mode 1: Goal-based learning with interactive conversation"""
-        self.show_section("📚 MODE 1: Goal-Based Learning")
+        user_id = str(self.current_user_id) if self.current_user_id else "1"
+        username = self.current_username or "User"
+        
+        self.show_section(f"📚 MODE 1: Goal-Based Learning")
         
         goal = self.get_user_input("\n🎯 What do you want to learn?", "e.g., 'I want to become an AI Engineer'")
         if not goal:
             self.show_message("❌ Please enter a learning goal.", "WARNING")
             return
         
-        user_id = self.get_user_input("\n👤 Enter your user ID", "user_1")
-        
-        # Load existing profile
+        # Load existing profile using user_id
         profile = self.memory.load_profile(user_id)
         if profile:
-            self.show_message(f"✅ Loaded existing profile for '{user_id}' ({len(profile.known_concepts)} concepts)")
+            self.show_message(f"✅ Loaded existing profile for '{username}' (ID: {user_id}) ({len(profile.known_concepts)} concepts)")
         else:
             profile = UserProfile(user_id=user_id)
-            self.show_message(f"🆕 Created new profile for '{user_id}'")
+            self.show_message(f"🆕 Created new profile for '{username}' (ID: {user_id})")
         
         self.show_message("\n🔄 Analyzing your goal and creating personalized learning plan...\n")
         
         try:
-            # Get conversation start with questions
             conversation, questions, session_id = await self.learning_discovery.start_goal_conversation(
                 user_id=user_id,
                 goal_statement=goal,
                 user_profile=profile
             )
             
-            # Display initial conversation - handle safely
             self.show_section("💬 DISCOVERY CONVERSATION")
             
             for msg in conversation:
@@ -460,7 +500,6 @@ class JinvexaApp:
                 message = msg.get("message", msg.get("question", str(msg)))
                 self.show_message(f"\n[{role}]: {message}")
             
-            # Interactive loop
             self.show_section("💬 INTERACTIVE DISCOVERY")
             self.show_message("Type 'quit' to skip questions and generate plan\n")
             
@@ -475,7 +514,6 @@ class JinvexaApp:
                 if not user_input:
                     continue
                 
-                # Process answer
                 result = await self.learning_discovery.process_answer(
                     session_id=session_id,
                     answer=user_input,
@@ -501,7 +539,6 @@ class JinvexaApp:
                     self.show_message(f"❌ {result.get('error')}", "ERROR")
                     break
             
-            # Show memory stats
             stats = self.memory.get_user_stats(user_id)
             self.show_message(f"\n📊 Learning Stats:")
             self.show_message(f"   Sessions: {stats['total_sessions']} | Messages: {stats['total_conversations']}")
@@ -514,22 +551,23 @@ class JinvexaApp:
             traceback.print_exc()
     
     async def run_mode_2_reference(self):
-        """Mode 2: Reference-Based Learning - User provides a document/video/URL"""
-        self.show_section("📚 MODE 2: Reference-Based Learning")
+        """Mode 2: Reference-Based Learning"""
+        user_id = str(self.current_user_id) if self.current_user_id else "1"
+        username = self.current_username or "User"
+        
+        self.show_section(f"📚 MODE 2: Reference-Based Learning")
         
         source = self.get_user_input("\n📎 Enter URL, file path, or YouTube link")
         if not source:
             self.show_message("❌ Please provide a valid source.", "WARNING")
             return
         
-        # Extract content
         self.show_message("\n🔄 Extracting content...")
         try:
             result = self.data_extractor.extract(source)
             source_type = result.get('type', 'unknown')
             self.show_message(f"✅ Type: {source_type}")
             
-            # Show content preview
             data = result.get('data', {})
             if isinstance(data, dict):
                 content = data.get('content', '')
@@ -545,28 +583,22 @@ class JinvexaApp:
             self.show_message(f"❌ Extraction failed: {e}", "ERROR")
             return
         
-        # Get user ID
-        user_id = self.get_user_input("\n👤 Enter your user ID", "user_1")
-        
-        # Load or create profile
         profile = self.memory.load_profile(user_id)
         if profile:
-            self.show_message(f"✅ Loaded existing profile for '{user_id}' ({len(profile.known_concepts)} concepts)")
+            self.show_message(f"✅ Loaded existing profile for '{username}' (ID: {user_id}) ({len(profile.known_concepts)} concepts)")
         else:
             profile = UserProfile(user_id=user_id)
-            self.show_message(f"🆕 Created new profile for '{user_id}'")
+            self.show_message(f"🆕 Created new profile for '{username}' (ID: {user_id})")
         
         self.show_message("\n🔄 Analyzing your reference and creating personalized learning plan...\n")
         
         try:
-            # Start interactive reference conversation
             conversation, questions, session_id = await self.learning_discovery.start_reference_conversation(
                 user_id=user_id,
                 source=source,
                 user_profile=profile
             )
             
-            # Display initial conversation
             self.show_section("💬 DISCOVERY CONVERSATION")
             
             for msg in conversation:
@@ -574,7 +606,6 @@ class JinvexaApp:
                 message = msg.get("message", msg.get("question", str(msg)))
                 self.show_message(f"\n[{role}]: {message}")
             
-            # Interactive loop
             self.show_section("💬 INTERACTIVE DISCOVERY")
             self.show_message("Type 'quit' to skip questions and generate plan\n")
             
@@ -589,7 +620,6 @@ class JinvexaApp:
                 if not user_input:
                     continue
                 
-                # Process answer
                 result = await self.learning_discovery.process_answer(
                     session_id=session_id,
                     answer=user_input,
@@ -615,7 +645,6 @@ class JinvexaApp:
                     self.show_message(f"❌ {result.get('error')}", "ERROR")
                     break
             
-            # Show memory stats
             stats = self.memory.get_user_stats(user_id)
             self.show_message(f"\n📊 Learning Stats:")
             self.show_message(f"   Sessions: {stats['total_sessions']} | Messages: {stats['total_conversations']}")
@@ -626,6 +655,8 @@ class JinvexaApp:
             self.show_message(f"❌ Error: {e}", "ERROR")
             import traceback
             traceback.print_exc()
+    
+    # ==================== DISPLAY HELPERS ====================
     
     def _display_conversation(self, conversation):
         """Display the conversation with proper error handling"""
@@ -638,16 +669,13 @@ class JinvexaApp:
         for msg in conversation:
             role = "🤖 Agent" if msg.get("role") == "agent" else "👤 You"
             
-            # Handle different message formats
             if "question" in msg:
-                # It's a question object
                 message = msg.get("question", "")
             elif "message" in msg:
                 message = msg.get("message", "")
             elif "content" in msg:
                 message = msg.get("content", "")
             else:
-                # Try to get any string value
                 message = str(msg) if not isinstance(msg, dict) else "Unknown message"
             
             self.show_message(f"\n[{role}]: {message}")
@@ -660,7 +688,6 @@ class JinvexaApp:
         
         self.show_section("📚 YOUR PERSONALIZED LEARNING PLAN")
         
-        # Safely access attributes - handle both dict and object
         if isinstance(plan, dict):
             main_topic = plan.get('main_topic', 'Unknown Topic')
             goal = plan.get('goal', 'Master the topic')
@@ -669,7 +696,6 @@ class JinvexaApp:
             roadmap = plan.get('roadmap', [])
             projects = plan.get('projects', [])
         else:
-            # It's a LearningPlan object
             main_topic = getattr(plan, 'main_topic', 'Unknown Topic')
             goal = getattr(plan, 'goal', 'Master the topic')
             estimated_time = getattr(plan, 'estimated_time_hours', 0)
@@ -702,15 +728,18 @@ class JinvexaApp:
         
         self.show_section("✅ Learning plan generated successfully!")
     
+    # ==================== STATISTICS ====================
+    
     async def run_show_stats(self):
         """Show user statistics"""
-        self.show_section("📊 USER LEARNING STATISTICS")
+        user_id = str(self.current_user_id) if self.current_user_id else "1"
+        username = self.current_username or "User"
         
-        user_id = self.get_user_input("\n👤 Enter user ID", "user_1")
+        self.show_section("📊 USER LEARNING STATISTICS")
         
         stats = self.memory.get_user_stats(user_id)
         
-        self.show_message(f"\n📊 Stats for: {user_id}")
+        self.show_message(f"\n📊 Stats for: {username} (ID: {user_id})")
         self.show_message(f"   Sessions: {stats['total_sessions']}")
         self.show_message(f"   Messages: {stats['total_conversations']}")
         
@@ -727,24 +756,24 @@ class JinvexaApp:
     
     async def run_view_sessions(self):
         """View all sessions for a user"""
-        self.show_section("📋 USER SESSIONS")
+        user_id = str(self.current_user_id) if self.current_user_id else "1"
+        username = self.current_username or "User"
         
-        user_id = self.get_user_input("\n👤 Enter user ID", "user_1")
+        self.show_section("📋 USER SESSIONS")
         
         sessions = self.memory.get_user_sessions(user_id)
         
         if not sessions:
-            self.show_message(f"\nNo sessions found for: {user_id}")
+            self.show_message(f"\nNo sessions found for: {username} (ID: {user_id})")
             return
         
-        self.show_message(f"\n📋 Found {len(sessions)} sessions")
+        self.show_message(f"\n📋 Found {len(sessions)} sessions for {username}:")
         self.show_message("-" * 50)
         
         for i, session in enumerate(sessions, 1):
             self.show_message(f"{i}. {session.session_id[:20]}... ({session.mode})")
             self.show_message(f"   Created: {session.created_at[:19]}")
             self.show_message(f"   Messages: {len(session.conversation_history)}")
-            # Handle None values
             if session.concepts and isinstance(session.concepts, dict):
                 self.show_message(f"   Topic: {session.concepts.get('main_topic', 'Unknown')}")
             else:
@@ -760,9 +789,12 @@ class JinvexaApp:
                 self.show_message("\n📋 Session Details:")
                 self.show_message(json.dumps(summary, indent=2, default=str))
     
+    # ==================== CONTINUE CONVERSATION ====================
+    
     async def _handle_continue_conversation(self):
         """Handle continue conversation flow"""
-        user_id = self.get_user_input("\n👤 Enter user ID", "user_1")
+        user_id = str(self.current_user_id) if self.current_user_id else "1"
+        
         sessions = self.memory.get_user_sessions(user_id)
         if sessions:
             self.show_message("\n📋 Recent sessions:")
@@ -776,14 +808,41 @@ class JinvexaApp:
         else:
             self.show_message("❌ No sessions found.", "WARNING")
     
+    async def _continue_conversation(self, session_id: str):
+        """Continue an existing conversation"""
+        self.show_section("💬 CONTINUING CONVERSATION")
+        self.show_message("Type 'quit' to end.\n")
+        
+        while True:
+            user_msg = self.get_user_input("👤 You")
+            if user_msg.lower() in ['quit', 'exit', 'done']:
+                break
+            
+            if not user_msg:
+                continue
+            
+            result = self.learning_discovery.continue_conversation_with_memory(
+                session_id, user_msg
+            )
+            
+            if "error" in result:
+                self.show_message(f"❌ {result['error']}", "ERROR")
+                break
+            
+            history = result.get("conversation_history", [])
+            if history:
+                last_msg = history[-1]
+                self.show_message(f"🤖 Agent: {last_msg['message']}")
+    
+    # ==================== TEACHING MODE ====================
+    
     async def run_mode_teaching(self):
         """Mode 3: Teaching Layer - Generate lessons from learning plans"""
+        user_id = str(self.current_user_id) if self.current_user_id else "1"
+        username = self.current_username or "User"
+        
         self.show_section("📚 MODE 3: Teaching Layer")
         
-        # Get user ID first
-        user_id = self.get_user_input("\n👤 Enter your user ID", "user_1")
-        
-        # List available sessions
         all_sessions = self.teaching_agent.list_available_sessions()
         
         if not all_sessions:
@@ -791,15 +850,14 @@ class JinvexaApp:
             self.show_message("   Please create a learning plan first (Mode 1 or 2).")
             return
         
-        # Filter sessions for this user
         sessions = [s for s in all_sessions if s.get("user_id", "").lower() == user_id.lower()]
         
         if not sessions:
-            self.show_message(f"❌ No sessions found for user '{user_id}'.", "WARNING")
+            self.show_message(f"❌ No sessions found for user '{username}' (ID: {user_id}).", "WARNING")
             self.show_message("   Please create a learning plan first (Mode 1 or 2).")
             return
         
-        self.show_message(f"\n📋 Available sessions for '{user_id}':")
+        self.show_message(f"\n📋 Available sessions for '{username}':")
         self.show_message("-" * 50)
         for i, session in enumerate(sessions, 1):
             self.show_message(f"{i}. Session: {session['session_id'][:20]}...")
@@ -808,7 +866,6 @@ class JinvexaApp:
             self.show_message(f"   Total Time: {session.get('total_hours', 0)} hours")
             self.show_message("")
         
-        # Select session
         choice = self.get_user_input("\n🔍 Select session number to generate course")
         if not choice.isdigit():
             self.show_message("❌ Invalid selection.", "WARNING")
@@ -838,7 +895,6 @@ class JinvexaApp:
                 self.show_message(f"❌ Error: {result['error']}", "ERROR")
                 return
             
-            # Display format decisions
             if result.get("format_decisions"):
                 self.show_section("📋 FORMAT DECISIONS MADE BY AI")
                 for decision in result["format_decisions"]:
@@ -858,13 +914,11 @@ class JinvexaApp:
                     self.show_message(f"   {emoji} {decision.get('topic')} → {label}")
                     self.show_message(f"      💡 {decision.get('reason', '')[:80]}...")
             
-            # Display results
             self.show_section("✅ COURSE GENERATION COMPLETE")
             
             self.show_message(f"\n📌 Course: {result.get('main_topic', 'Unknown')}")
             self.show_message(f"📝 Total Lessons: {result.get('total_lessons', 0)}")
             
-            # Show manifest/watch order
             manifest = result.get('manifest', [])
             if manifest:
                 self.show_message("\n📋 WATCH ORDER (from manifest):")
@@ -885,7 +939,6 @@ class JinvexaApp:
                 if len(manifest) > 10:
                     self.show_message(f"   ... and {len(manifest) - 10} more lessons")
             
-            # Show files
             text_files = result.get('text_files', [])
             audio_files = result.get('audio_files', [])
             
@@ -908,7 +961,6 @@ class JinvexaApp:
             self.show_message(f"   🎧 Audio: {self.teaching_agent.audio_dir}/")
             self.show_message(f"   📋 Manifest: {self.teaching_agent.manifest_dir}/")
             
-            # Show manifest location
             manifest_file = self.teaching_agent.manifest_dir / f"{session_id}_manifest.json"
             if manifest_file.exists():
                 self.show_message(f"\n📋 Manifest saved at: {manifest_file}")
@@ -918,15 +970,16 @@ class JinvexaApp:
             self.show_message(f"❌ Error generating course: {e}", "ERROR")
             import traceback
             traceback.print_exc()
-
+    
+    # ==================== ASSIGNMENT MODE ====================
+    
     async def run_mode_assignment(self):
         """Mode 4: Assignment Layer - Auto-configured by AI"""
+        user_id = str(self.current_user_id) if self.current_user_id else "1"
+        username = self.current_username or "User"
+        
         self.show_section("📝 MODE 4: Assignment Layer")
         
-        # Get user ID
-        user_id = self.get_user_input("\n👤 Enter your user ID", "user_1")
-        
-        # List available sessions with completed courses
         sessions = self.teaching_agent.list_available_sessions()
         
         if not sessions:
@@ -934,7 +987,6 @@ class JinvexaApp:
             self.show_message("   Please complete a course first (Mode 3).")
             return
         
-        # Filter sessions that have courses generated
         available_sessions = []
         for session in sessions:
             session_id = session.get("session_id", "")
@@ -947,7 +999,7 @@ class JinvexaApp:
             self.show_message("   Please generate a course first (Mode 3).")
             return
         
-        self.show_message("\n📋 Available completed courses:")
+        self.show_message(f"\n📋 Available completed courses for '{username}':")
         self.show_message("-" * 50)
         for i, session in enumerate(available_sessions, 1):
             self.show_message(f"{i}. Topic: {session.get('main_topic', 'Unknown')}")
@@ -956,7 +1008,6 @@ class JinvexaApp:
             self.show_message(f"   Total Time: {session.get('total_hours', 0)} hours")
             self.show_message("")
         
-        # Select session
         choice = self.get_user_input("\n🔍 Select course for assignment")
         if not choice.isdigit():
             self.show_message("❌ Invalid selection.", "WARNING")
@@ -974,7 +1025,6 @@ class JinvexaApp:
         self.show_message("\n🧠 AI is analyzing the course to configure the assignment...")
         
         try:
-            # Generate assignment with auto-configuration
             assignment = await self.assignment_generator.generate_assignment(
                 session_id=session_id,
                 user_id=user_id
@@ -984,7 +1034,6 @@ class JinvexaApp:
                 self.show_message(f"❌ Error: {assignment['error']}", "ERROR")
                 return
             
-            # Display auto-configuration
             config = assignment.get("configuration", {})
             self.show_section("📋 ASSIGNMENT CONFIGURATION (Auto-decided by AI)")
             self.show_message(f"📝 MCQ Questions: {config.get('num_mcq', 5)}")
@@ -1000,7 +1049,6 @@ class JinvexaApp:
             self.show_message(f"\n⏱️ Time Limit: {assignment.get('time_limit_minutes', 0)} minutes")
             self.show_message(f"📝 Total Questions: {len(mcq_questions) + len(written_questions)}")
             
-            # Display MCQ questions
             self.show_section("📌 MULTIPLE CHOICE QUESTIONS")
             
             user_answers = {}
@@ -1020,7 +1068,6 @@ class JinvexaApp:
                     else:
                         self.show_message(f"❌ Invalid. Please enter {chr(65)}-{chr(65 + len(q.get('options', [])) - 1)}", "WARNING")
             
-            # Display written questions
             self.show_section("📌 WRITTEN/ESSAY QUESTIONS")
             
             for i, q in enumerate(written_questions, 1):
@@ -1038,7 +1085,6 @@ class JinvexaApp:
             
             self.show_message("\n🔄 Evaluating your answers...")
             
-            # Evaluate assignment
             result = await self.assignment_evaluator.evaluate_assignment(
                 assignment_id=assignment_id,
                 user_answers=user_answers,
@@ -1049,7 +1095,6 @@ class JinvexaApp:
                 self.show_message(f"❌ Error: {result['error']}", "ERROR")
                 return
             
-            # Display results
             self.show_section("📊 ASSIGNMENT RESULTS")
             
             total = result.get("scores", {}).get("total", {})
@@ -1064,12 +1109,10 @@ class JinvexaApp:
             status_text = '✅ PASSED' if total.get('percentage', 0) >= assignment.get('passing_score', 70) else '❌ NEEDS REVIEW'
             self.show_message(f"📈 Status: {status_text}")
             
-            # Show feedback
             feedback = result.get("feedback", {})
             self.show_message(f"\n💬 Feedback: {feedback.get('overall', '')}")
             self.show_message(f"📚 Recommendation: {feedback.get('recommendation', '')}")
             
-            # Show wrong answers
             wrong_answers = result.get("wrong_answers", [])
             if wrong_answers:
                 self.show_message("\n❌ Incorrect Answers:")
@@ -1084,7 +1127,6 @@ class JinvexaApp:
                         self.show_message(f"     Score: {wa.get('score', 0)}/{wa.get('max_score', 10)}")
                         self.show_message(f"     Feedback: {wa.get('feedback', '')}")
             
-            # Show improvement areas
             improvement_areas = result.get("improvement_areas", [])
             if improvement_areas:
                 self.show_message("\n📚 Areas for Improvement:")
@@ -1097,24 +1139,26 @@ class JinvexaApp:
                 self.show_message("\n📚 Areas for Improvement:")
                 self.show_message("   • No specific areas identified. Great job!")
             
-            # Save progress
             self.assignment_tracker.save_progress_summary(user_id)
-            self.show_message(f"\n💾 Progress saved for user: {user_id}")
+            self.show_message(f"\n💾 Progress saved for user: {username} (ID: {user_id})")
             
         except Exception as e:
             self.show_message(f"❌ Error: {e}", "ERROR")
             import traceback
             traceback.print_exc()
-
+    
+    # ==================== PROGRESS MODE ====================
+    
     async def run_mode_progress(self):
         """Mode 7: View progress"""
-        self.show_section("📊 PROGRESS TRACKING")
+        user_id = str(self.current_user_id) if self.current_user_id else "1"
+        username = self.current_username or "User"
         
-        user_id = self.get_user_input("\n👤 Enter your user ID", "user_1")
+        self.show_section("📊 PROGRESS TRACKING")
         
         progress = self.assignment_tracker.get_user_progress(user_id)
         
-        self.show_message(f"\n📊 Progress for: {user_id}")
+        self.show_message(f"\n📊 Progress for: {username} (ID: {user_id})")
         self.show_message("-" * 40)
         self.show_message(f"📚 Total Assignments: {progress.get('total_assignments', 0)}")
         self.show_message(f"📈 Average Score: {progress.get('average_score', 0)}%")
@@ -1124,7 +1168,6 @@ class JinvexaApp:
         self.show_message(f"📉 Trend: {progress.get('trend', 'Insufficient data')}")
         self.show_message(f"⭐ Performance: {progress.get('performance', 'No data')}")
         
-        # Show certificate eligibility
         eligibility = self.assignment_tracker.get_certificate_eligibility(user_id)
         self.show_message(f"\n🎓 Certificate Status: {eligibility.get('status', 'N/A')}")
         if eligibility.get('eligible'):
@@ -1132,7 +1175,6 @@ class JinvexaApp:
         else:
             self.show_message(f"   Requirements: {eligibility.get('requirement', '')}")
         
-        # Show history
         history = progress.get("history", [])
         if history:
             self.show_message("\n📋 Recent Assignments:")
@@ -1142,13 +1184,14 @@ class JinvexaApp:
                 grade = h.get("scores", {}).get("total", {}).get("grade", "N/A")
                 self.show_message(f"   • {date}: {score}% ({grade})")
         
-        # Recommendations
         recommendations = progress.get("recommendations", [])
         if recommendations:
             self.show_message("\n💡 Recommendations:")
             for rec in recommendations[:3]:
                 self.show_message(f"   • {rec}")
-
+    
+    # ==================== TEACHING STATUS ====================
+    
     async def run_teaching_status(self):
         """View teaching status for a session"""
         self.show_section("📊 TEACHING STATUS")
@@ -1158,7 +1201,6 @@ class JinvexaApp:
             self.show_message("❌ Please enter a session ID.", "WARNING")
             return
         
-        # Check if course exists
         status = self.teaching_agent.get_course_status(session_id)
         
         if "error" in status:
@@ -1170,46 +1212,45 @@ class JinvexaApp:
         self.show_message(f"📄 Text Files: {len(status.get('text_files', []))}")
         self.show_message(f"🎧 Audio Files: {len(status.get('audio_files', []))}")
         
-        # Show recent phases
         if status.get('phases'):
             self.show_message("\n📚 Generated Phases:")
             for phase in status['phases']:
                 self.show_message(f"   • Phase {phase.get('phase_number')}: {phase.get('phase_title')}")
                 self.show_message(f"     Lessons: {len(phase.get('lessons', []))}")
     
+    # ==================== MODEL INFO ====================
+    
     async def run_model_info(self):
         """Show model information"""
         self.show_section("🤖 OLLAMA MODEL INFO")
         self.show_message(f"\n📌 Model: {self.llm_client.model}")
-
+    
+    # ==================== CHANGE MODEL ====================
+    
     async def run_mode_change_model(self):
         """Mode: Change Ollama Model with capabilities display"""
         self.show_section("🤖 CHANGE MODEL")
         
-        # Get available models
         models = self.config.get_available_models()
         
         if not models:
             self.show_message("❌ No models available.", "ERROR")
             return
         
-        # Display current model
         current_model = self.config.get_model()
         current_desc = self.config.get_model_description(current_model)
         current_caps = self.config.get_model_capabilities(current_model)
         current_type = self.config.get_model_type(current_model)
         
-        self.show_message(f"\n📌 Current Model: {current_model}", "INFO")
+        self.show_message(f"\n📌 Current Model: {current_model}")
         if current_desc:
-            self.show_message(f"   Description: {current_desc}", "INFO")
-        self.show_message(f"   Type: {current_type.upper()}", "INFO")
-        self.show_message(f"   Capabilities: {', '.join(current_caps)}", "INFO")
+            self.show_message(f"   Description: {current_desc}")
+        self.show_message(f"   Type: {current_type.upper()}")
+        self.show_message(f"   Capabilities: {', '.join(current_caps)}")
         
-        # Show vision model note
         if self.config.supports_document_scan():
-            self.show_message("   📄 Supports Document Scan / OCR", "SUCCESS")
+            self.show_message("   📄 Supports Document Scan / OCR")
         
-        # Display available models
         self.show_section("📋 Available Models")
         
         vision_models = self.config.get_vision_models()
@@ -1219,17 +1260,16 @@ class JinvexaApp:
             marker = "▶ " if model_name == current_model else "  "
             vision_tag = " 🖼️" if is_vision else ""
             
-            self.show_message(f"{marker}{i}. {model_name}{vision_tag}", "INFO")
+            self.show_message(f"{marker}{i}. {model_name}{vision_tag}")
             if description:
-                self.show_message(f"      {description}", "INFO")
+                self.show_message(f"      {description}")
             if is_vision:
-                self.show_message(f"      📄 Supports Document Scan / OCR", "INFO")
+                self.show_message(f"      📄 Supports Document Scan / OCR")
         
-        self.show_message("\n", "INFO")
-        self.show_message("  🖼️ = Supports Document Scan / OCR", "INFO")
-        self.show_message("  ▶  = Current Model", "INFO")
+        self.show_message("\n")
+        self.show_message("  🖼️ = Supports Document Scan / OCR")
+        self.show_message("  ▶  = Current Model")
         
-        # Get user selection
         choice = self.get_user_input("\n🔍 Enter model number to switch (or press Enter to cancel)")
         
         if not choice:
@@ -1249,28 +1289,24 @@ class JinvexaApp:
         selected_desc = models[idx][1]
         is_vision = selected_model in vision_models
         
-        # Confirm selection
-        self.show_message(f"\n📌 Selected: {selected_model}", "INFO")
-        self.show_message(f"   Description: {selected_desc}", "INFO")
+        self.show_message(f"\n📌 Selected: {selected_model}")
+        self.show_message(f"   Description: {selected_desc}")
         if is_vision:
-            self.show_message("   📄 Supports Document Scan / OCR", "SUCCESS")
+            self.show_message("   📄 Supports Document Scan / OCR")
         else:
-            self.show_message("   📄 Text-Only Model (No Document Scan)", "WARNING")
+            self.show_message("   📄 Text-Only Model (No Document Scan)")
         
         confirm = self.get_user_input("\n🔄 Are you sure you want to switch? (y/n)", "y")
         if confirm.lower() != 'y':
             self.show_message("❌ Model switch cancelled.", "WARNING")
             return
         
-        # Apply model change
         success = self.config.set_model(selected_model)
         if success:
-            self.show_message(f"✅ Model changed to: {selected_model}", "SUCCESS")
-            self.show_message("   Restart the application for changes to take full effect.", "INFO")
-            
-            # Update the LLM client
+            self.show_message(f"✅ Model changed to: {selected_model}")
+            self.show_message("   Restart the application for changes to take full effect.")
             self.llm_client.model = selected_model
-            self.show_message("   LLM Client updated with new model.", "INFO")
+            self.show_message("   LLM Client updated with new model.")
         else:
             self.show_message("❌ Failed to change model.", "ERROR")
     
@@ -1278,6 +1314,9 @@ class JinvexaApp:
     
     async def run_mode_mentoring(self):
         """Mode: Mentoring Layer - Chat with AI Mentor"""
+        user_id = str(self.current_user_id) if self.current_user_id else "1"
+        username = self.current_username or "User"
+        
         self.show_section("🧠 MODE: Mentoring Layer")
         
         self.show_message("\n📋 Select Mentoring Mode:")
@@ -1292,13 +1331,10 @@ class JinvexaApp:
         
         mode = "session" if mode_choice == "1" else "full"
         
-        user_id = self.get_user_input("\n👤 Enter your user ID", "user_1")
-        
         session_id = None
         session_topic = "All Sessions"
         
         if mode == "session":
-            # List available sessions with learning plans
             sessions = self.teaching_agent.list_available_sessions()
             
             if not sessions:
@@ -1329,13 +1365,13 @@ class JinvexaApp:
         
         self.show_message(f"\n🧠 Starting mentoring session for: {session_topic}")
         self.show_message(f"📌 Mode: {mode.upper()}")
-        self.show_message("="*60)
+        self.show_section("", char="=")
         self.show_message("\n💡 You can ask questions about the course content, request explanations,")
         self.show_message("   seek clarification on concepts, or just have a learning conversation.")
         self.show_message("\n   Type 'quit' to end the session.")
         self.show_message("   Type 'clear' to clear conversation history.")
         self.show_message("   Type 'summary' to see a summary of this conversation.")
-        self.show_message("="*60)
+        self.show_section("", char="=")
         
         conversation_id = None
         
@@ -1366,11 +1402,9 @@ class JinvexaApp:
                     self.show_message("📊 No active conversation yet.")
                 continue
             
-            # Show typing indicator
             self.show_message("\n🧠 Jinvexa Mentor is thinking...")
             
             try:
-                # Get response
                 result = await self.mentoring_agent.chat(
                     user_id=user_id,
                     message=user_input,
@@ -1395,17 +1429,18 @@ class JinvexaApp:
     
     async def run_mode_mentoring_history(self):
         """View mentoring history"""
-        self.show_section("📋 MENTORING HISTORY")
+        user_id = str(self.current_user_id) if self.current_user_id else "1"
+        username = self.current_username or "User"
         
-        user_id = self.get_user_input("\n👤 Enter your user ID", "user_1")
+        self.show_section("📋 MENTORING HISTORY")
         
         conversations = self.mentoring_agent.list_conversations(user_id)
         
         if not conversations:
-            self.show_message(f"\nNo mentoring conversations found for: {user_id}")
+            self.show_message(f"\nNo mentoring conversations found for: {username}")
             return
         
-        self.show_message(f"\n📋 Found {len(conversations)} conversations:")
+        self.show_message(f"\n📋 Found {len(conversations)} conversations for {username}:")
         self.show_message("-" * 50)
         
         for i, conv in enumerate(conversations, 1):
@@ -1438,13 +1473,14 @@ class JinvexaApp:
         
         info = self.mentoring_agent.get_conversation_info(conversation_id)
         session_topic = self.mentoring_agent.get_session_topic(session_id)
+        username = self.current_username or "User"
         
-        self.show_message(f"\n🧠 Continuing mentoring session: {session_topic}")
+        self.show_message(f"\n🧠 Continuing mentoring session for: {session_topic}")
         self.show_message(f"📌 Mode: {mode.upper()}")
-        self.show_message("="*60)
+        self.show_section("", char="=")
         self.show_message("\n💡 Type 'quit' to end the session.")
         self.show_message("   Type 'clear' to clear conversation history.")
-        self.show_message("="*60)
+        self.show_section("", char="=")
         
         while True:
             user_input = self.get_user_input("\n👤 You")
@@ -1486,8 +1522,13 @@ class JinvexaApp:
                 import traceback
                 traceback.print_exc()
     
+    # ==================== RUN METHOD ====================
+    
     async def run(self):
         """Main run loop - Professional Claude Code style"""
+        if not self.display_login():
+            return
+        
         self.display_banner()
 
         while True:
@@ -1507,12 +1548,11 @@ class JinvexaApp:
                 {"category": "Progress", "num": "10", "name": "Continue Conversation"},
 
                 {"category": "System", "num": "11", "name": "Teaching Status"},
-                    {"category": "System", "num": "12", "name": "Model Info"},
-                    {"category": "System", "num": "13", "name": "Change Model"},
-                    {"category": "System", "num": "14", "name": "Exit"},
+                {"category": "System", "num": "12", "name": "Model Info"},
+                {"category": "System", "num": "13", "name": "Change Model"},
+                {"category": "System", "num": "14", "name": "Exit"},
             ]
 
-            # Render menu with proper alignment and logging
             self.show_menu(menu_options, "Jinvexa Learning Platform")
 
             try:
@@ -1547,10 +1587,6 @@ class JinvexaApp:
                 await self.run_model_info()
             elif choice == "13":
                 await self.run_mode_change_model()
-            elif choice == "13":
-                self.show_message("\n  ✦ Thank you for using Jinvexa!", "INFO")
-                self.show_message("  ✦ Good luck with your learning journey!", "INFO")
-                break
             elif choice == "14":
                 self.show_message("\n  ✦ Thank you for using Jinvexa!", "INFO")
                 self.show_message("  ✦ Good luck with your learning journey!", "INFO")

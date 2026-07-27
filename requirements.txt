@@ -23,3 +23,7 @@ readability-lxml
 markdownify
 
 edge-tts
+
+# Add MongoDB dependency
+pymongo
+dnspython
