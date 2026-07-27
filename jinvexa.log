@@ -2278,3 +2278,1191 @@ Does that concept make sense? It's basically like moving from a digital encyclop
 [INFO] AppFile: 
   ✦ Thank you for using Jinvexa!
 [INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] AppFile: Section: 🔐 JINVEXA LOGIN
+[INFO] AppFile: 
+📋 Available users: admin, alice, bob, carol, testuser
+[INFO] AppFile:    (Users stored in MongoDB)
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: 👤 Username...
+[INFO] App: Waiting for user input: 🔑 Password...
+[INFO] AppFile: 
+✅ Welcome back, admin! 🎉
+[INFO] AppFile: Section: 
+[INFO] App: Starting Jinvexa Learning AI for user: admin (ID: 1)
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📚 MODE 1: Goal-Based Learning
+[INFO] App: Waiting for user input: 
+🎯 What do you want to learn?...
+[INFO] AppFile: ✅ Loaded existing profile for 'admin' (ID: 1) (1 concepts)
+[INFO] AppFile: 
+🔄 Analyzing your goal and creating personalized learning plan...
+
+[INFO] Agent.LearningDiscoveryAgent: Loading user profile...: User: 1
+[INFO] Agent.LearningDiscoveryAgent: Analyzing user request...: User wants to learn: Software developer
+[INFO] Agent.LearningDiscoveryAgent: Extracting concepts...: Using LLM to identify main topics and subtopics
+[INFO] Agent.LearningDiscoveryAgent: [LearningDiscoveryAgent] Analyzing goal: Software developer
+[INFO] Agent.LearningDiscoveryAgent: [OK] Concepts extracted: Found: Software Development with 8 subtopics
+[INFO] Agent.LearningDiscoveryAgent: Generating personalized questions...: Creating questions based on your profile
+[INFO] Agent.LearningDiscoveryAgent: [OK] Questions ready: Generated 4 questions for you
+[INFO] Agent.LearningDiscoveryAgent: Building knowledge graph...: Mapping dependencies between concepts
+[INFO] Agent.LearningDiscoveryAgent: [OK] Knowledge graph ready: Created 9 nodes with dependencies
+[INFO] AppFile: Section: 💬 DISCOVERY CONVERSATION
+[INFO] AppFile: 
+[🤖 Agent]: 🎯 I understand you want to learn about **Software Development**. That's a great goal!
+
+🧠 Let me ask you a few questions to understand your background and create the perfect learning plan for you.
+
+💡 **Quick Tip:** Be honest about your knowledge - this helps me build the right path for you!
+[INFO] AppFile: 
+[🤖 Agent]: How would you rate your current experience with Software Development?
+[INFO] AppFile: Section: 💬 INTERACTIVE DISCOVERY
+[INFO] AppFile: Type 'quit' to skip questions and generate plan
+
+[INFO] App: Waiting for user input: 
+👤 Your answer...
+[INFO] AppFile: 
+🤖 Agent: What's your primary learning goal?
+[INFO] AppFile:    Options: Build projects, Career transition, Academic research, Personal interest, Interview preparation
+[INFO] AppFile:    Progress: 1/4
+[INFO] App: Waiting for user input: 
+👤 Your answer...
+[INFO] AppFile: 
+🤖 Agent: How many hours per week can you dedicate to learning?
+[INFO] AppFile:    Progress: 2/4
+[INFO] App: Waiting for user input: 
+👤 Your answer...
+[INFO] AppFile: 
+🤖 Agent: Is there anything specific within Software Development that excites you or you're concerned about?
+[INFO] AppFile:    Progress: 3/4
+[INFO] App: Waiting for user input: 
+👤 Your answer...
+[INFO] AppFile: 
+✅ Great! Learning plan generated!
+
+[INFO] AppFile: Section: 📚 YOUR PERSONALIZED LEARNING PLAN
+[INFO] AppFile: 
+📌 Topic: Software Development
+[INFO] AppFile: 🎯 Goal: career
+[INFO] AppFile: ⏱️ Time: 36 hours
+[INFO] AppFile: 
+📖 Knowledge Gaps:
+[INFO] AppFile:   • Software Development
+[INFO] AppFile:   • Programming Languages
+[INFO] AppFile:   • Data Structures and Algorithms
+[INFO] AppFile:   • Version Control (Git)
+[INFO] AppFile:   • Software Architecture and Design Patterns
+[INFO] AppFile: 
+🗺️ Roadmap:
+[INFO] AppFile: 
+  📍 Phase 1: 📖 Fundamentals: Software Development, Programming Languages & Data Structures and Algorithms
+[INFO] AppFile:      Learn essential concepts including Software Development, Programming Languages, Data Structures and Algorithms, and more
+[INFO] AppFile:      Topics: Software Development, Programming Languages, Data Structures and Algorithms, Version Control (Git)
+[INFO] AppFile:      ⏱️ 16 hours
+[INFO] AppFile: 
+  📍 Phase 2: 📚 Building Skills: Software Architecture and Design Patterns, Database Management & Testing and Debugging
+[INFO] AppFile:      Learn essential concepts including Software Architecture and Design Patterns, Database Management, Testing and Debugging, and more
+[INFO] AppFile:      Topics: Software Architecture and Design Patterns, Database Management, Testing and Debugging, API Development
+[INFO] AppFile:      ⏱️ 16 hours
+[INFO] AppFile: 
+  📍 Phase 3: 🚀 Advanced DevOps and Deployment
+[INFO] AppFile:      Master DevOps and Deployment with practical understanding
+[INFO] AppFile:      Topics: DevOps and Deployment
+[INFO] AppFile:      ⏱️ 4 hours
+[INFO] AppFile: 
+  📍 Phase 4: 🏆 Capstone: Software Development, Data Structures and Algorithms & Software Architecture and Design Patterns
+[INFO] AppFile:      Apply everything you've learned by building a comprehensive Software Development project
+[INFO] AppFile:      Topics: Software Development, Data Structures and Algorithms, Software Architecture and Design Patterns
+[INFO] AppFile:      ⏱️ 8 hours
+[INFO] AppFile: 
+🛠️ Projects:
+[INFO] AppFile:   • 🚀 Getting Started with Software Development
+[INFO] AppFile:   • 💡 Software Development Application
+[INFO] AppFile: Section: ✅ Learning plan generated successfully!
+[INFO] AppFile: 
+📊 Learning Stats:
+[INFO] AppFile:    Sessions: 2 | Messages: 0
+[INFO] AppFile:    Known Concepts: 6
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📝 MODE 4: Assignment Layer
+[WARNING] AppFile: ❌ No sessions with learning plans found.
+[INFO] AppFile:    Please complete a course first (Mode 3).
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📚 MODE 3: Teaching Layer
+[WARNING] AppFile: ❌ No sessions with learning plans found.
+[INFO] AppFile:    Please create a learning plan first (Mode 1 or 2).
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 🧠 MODE: Mentoring Layer
+[INFO] AppFile: 
+📋 Select Mentoring Mode:
+[INFO] AppFile:   1. Session Mode (Chat about one specific course)
+[INFO] AppFile:   2. Full Mode (Chat about all your learning)
+[INFO] App: Waiting for user input: 
+Enter choice (1-2)...
+[WARNING] AppFile: ❌ No sessions with learning plans found.
+[INFO] AppFile:    Please complete a course first (Mode 3).
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 🧠 MODE: Mentoring Layer
+[INFO] AppFile: 
+📋 Select Mentoring Mode:
+[INFO] AppFile:   1. Session Mode (Chat about one specific course)
+[INFO] AppFile:   2. Full Mode (Chat about all your learning)
+[INFO] App: Waiting for user input: 
+Enter choice (1-2)...
+[INFO] AppFile: 
+🧠 Starting mentoring session for: All Sessions
+[INFO] AppFile: 📌 Mode: FULL
+[INFO] AppFile: Section: 
+[INFO] AppFile: 
+💡 You can ask questions about the course content, request explanations,
+[INFO] AppFile:    seek clarification on concepts, or just have a learning conversation.
+[INFO] AppFile: 
+   Type 'quit' to end the session.
+[INFO] AppFile:    Type 'clear' to clear conversation history.
+[INFO] AppFile:    Type 'summary' to see a summary of this conversation.
+[INFO] AppFile: Section: 
+[INFO] App: Waiting for user input: 
+👤 You...
+[INFO] AppFile: 
+🧠 Jinvexa Mentor is thinking...
+[INFO] Agent.MentoringAgent: Starting mentoring session...: Mode: FULL, User: 1
+[INFO] Agent.MentoringAgent: Loading context...: Loading all sessions
+[INFO] Agent.MentoringAgent: Generating response...: Using LLM to formulate helpful response
+[INFO] Agent.MentoringAgent: [OK] Response generated: 525 characters
+[INFO] AppFile: 
+🧠 Mentor: Hello there! 👋 I'm your Jinvexa Mentor, and I'm so excited to accompany you on your learning journey! 🌟
+
+I'm here to help you understand new concepts, guide you through your lessons, and answer any questions you might have along the way. Think of me as your friendly tutor—whenever you feel stuck or just want to dive deeper into a topic, I've got your back!
+
+Since we're just getting started, feel free to let me know what you're working on or if there's anything specific you'd like to explore. 🚀
+
+How can I help you today?
+[INFO] App: Waiting for user input: 
+👤 You...
+[INFO] AppFile: 
+👋 Thank you for mentoring! Keep learning!
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] AppFile: Section: 🔐 JINVEXA LOGIN
+[INFO] AppFile: 
+📋 Available users: admin, alice, bob, carol, testuser
+[INFO] AppFile:    (Users stored in MongoDB)
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: 👤 Username...
+[INFO] App: Waiting for user input: 🔑 Password...
+[INFO] AppFile: 
+✅ Welcome back, admin! 🎉
+[INFO] AppFile: Section: 
+[INFO] App: Starting Jinvexa Learning AI for user: admin (ID: 1)
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ──────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📚 MODE 3: Teaching Layer
+[WARNING] AppFile: ❌ No sessions with learning plans found.
+[INFO] AppFile:    Please create a learning plan first (Mode 1 or 2).
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ──────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] AppFile: Section: 🔐 JINVEXA LOGIN
+[INFO] AppFile: 
+📋 Available users: admin, alice, bob, carol, testuser
+[INFO] AppFile:    (Users stored in MongoDB)
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: 👤 Username...
+[INFO] App: Waiting for user input: 🔑 Password...
+[INFO] AppFile: 
+✅ Welcome back, admin! 🎉
+[INFO] AppFile: Section: 
+[INFO] App: Starting Jinvexa Learning AI for user: admin (ID: 1)
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ──────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📚 MODE 3: Teaching Layer
+[INFO] AppFile: 
+📋 Available sessions for 'admin':
+[INFO] AppFile: --------------------------------------------------
+[INFO] AppFile: 1. Session: 1_20260727_162011_87...
+[INFO] AppFile:    Topic: AI Engineering
+[INFO] AppFile:    Phases: 5
+[INFO] AppFile:    Total Time: 60 hours
+[INFO] AppFile: 
+[INFO] AppFile: 2. Session: 1_20260727_183805_90...
+[INFO] AppFile:    Topic: Software Development
+[INFO] AppFile:    Phases: 4
+[INFO] AppFile:    Total Time: 36 hours
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: 
+🔍 Select session number to generate course...
+[INFO] AppFile: 
+📚 Generating course for: Software Development
+[INFO] AppFile:    Phases: 4
+[INFO] AppFile:    Total Time: 36 hours
+[INFO] AppFile: 
+🧠 AI is analyzing each topic to decide the best format...
+[INFO] AppFile:    (text, female voice, or male voice based on content)
+
+[INFO] Agent.TeachingAgent: Starting course generation...: Loading session: 1_20260727_183805_90...
+[INFO] Agent.TeachingAgent: [OK] Session loaded: Course: Software Development with 4 phases
+[INFO] Agent.TeachingAgent: AI deciding formats...: Analyzing each topic to choose best format (text/audio)
+[INFO] Agent.TeachingAgent: [OK] Format decisions made: 12 topics analyzed
+[INFO] Agent.TeachingAgent: Generating lessons...: Using 5 parallel threads for 12 lessons
+[INFO] Agent.TeachingAgent: [OK] Course generation complete: Generated 12 lessons across 4 phases
+[INFO] AppFile: Section: 📋 FORMAT DECISIONS MADE BY AI
+[INFO] AppFile:    👩 Software Development → Female Voice (Warm audio)
+[INFO] AppFile:       💡 Introductory conceptual overview; requires a warm, engaging tone to welcome begi...
+[INFO] AppFile:    📄 Programming Languages → Text (Self-paced reading)
+[INFO] AppFile:       💡 Requires syntax examples and code snippets which are best consumed via reading....
+[INFO] AppFile:    👨 Data Structures and Algorithms → Male Voice (Professional audio)
+[INFO] AppFile:       💡 Technical and academic subject matter that benefits from a professional, authori...
+[INFO] AppFile:    📄 Version Control (Git) → Text (Self-paced reading)
+[INFO] AppFile:       💡 Command-line heavy content; users need to see the exact syntax of Git commands....
+[INFO] AppFile:    👨 Software Architecture and Design Patterns → Male Voice (Professional audio)
+[INFO] AppFile:       💡 Advanced professional concepts that align with a technical, industry-standard de...
+[INFO] AppFile:    📄 Database Management → Text (Self-paced reading)
+[INFO] AppFile:       💡 Involves schema diagrams and SQL queries which are best suited for a reference-s...
+[INFO] AppFile:    👩 Testing and Debugging → Female Voice (Warm audio)
+[INFO] AppFile:       💡 Debugging can be frustrating for beginners; a supportive and encouraging voice h...
+[INFO] AppFile:    📄 API Development → Text (Self-paced reading)
+[INFO] AppFile:       💡 Requires viewing JSON structures and endpoint documentation....
+[INFO] AppFile:    👨 DevOps and Deployment → Male Voice (Professional audio)
+[INFO] AppFile:       💡 High-level technical infrastructure and professional deployment workflows....
+[INFO] AppFile:    👩 Software Development → Female Voice (Warm audio)
+[INFO] AppFile:       💡 Capstone guidance needs to be encouraging and coaching-oriented to guide the stu...
+[INFO] AppFile:    📄 Data Structures and Algorithms → Text (Self-paced reading)
+[INFO] AppFile:       💡 At the capstone level, this is a reference for implementation and optimization l...
+[INFO] AppFile:    📄 Software Architecture and Design Patterns → Text (Self-paced reading)
+[INFO] AppFile:       💡 Complex architectural blueprints and patterns are best analyzed visually and thr...
+[INFO] AppFile: Section: ✅ COURSE GENERATION COMPLETE
+[INFO] AppFile: 
+📌 Course: Software Development
+[INFO] AppFile: 📝 Total Lessons: 12
+[INFO] AppFile: 
+📋 WATCH ORDER (from manifest):
+[INFO] AppFile: ----------------------------------------
+[INFO] AppFile:    1. 📄 Software Development
+[INFO] AppFile:    2. 📄 Programming Languages
+[INFO] AppFile:    3. 📄 Data Structures and Algorithms
+[INFO] AppFile:    4. 📄 Version Control (Git)
+[INFO] AppFile:    5. 📄 Software Architecture and Design Patterns
+[INFO] AppFile:    6. 📄 Database Management
+[INFO] AppFile:    7. 📄 Testing and Debugging
+[INFO] AppFile:    8. 📄 API Development
+[INFO] AppFile:    9. 🎧 (male) DevOps and Deployment
+[INFO] AppFile:    10. 🎧 (female) Software Development
+[INFO] AppFile:    ... and 2 more lessons
+[INFO] AppFile: 
+💾 Files saved in: learn_files/
+[INFO] AppFile:    📄 Lessons: learn_files\lessons/
+[INFO] AppFile:    🎧 Audio: learn_files\audio/
+[INFO] AppFile:    📋 Manifest: learn_files\manifests/
+[INFO] AppFile: 
+📋 Manifest saved at: learn_files\manifests\1_20260727_183805_900d1bdb_manifest.json
+[INFO] AppFile:    Contains complete watch order with content types
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ──────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📝 MODE 4: Assignment Layer
+[INFO] AppFile: 
+📋 Available completed courses for 'admin':
+[INFO] AppFile: --------------------------------------------------
+[INFO] AppFile: 1. Topic: Software Development
+[INFO] AppFile:    Session: 1_20260727_183805_90...
+[INFO] AppFile:    Phases: 4
+[INFO] AppFile:    Total Time: 36 hours
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: 
+🔍 Select course for assignment...
+[INFO] AppFile: 
+📚 Generating assignment for: Software Development
+[INFO] AppFile: 
+🧠 AI is analyzing the course to configure the assignment...
+[INFO] Agent.AssignmentGeneratorAgent: Starting assignment generation...: Generating for session: 1_20260727_183805_90...
+[INFO] Agent.AssignmentGeneratorAgent: AI configuring assignment...: Analyzing course complexity and user level
+[INFO] Agent.AssignmentGeneratorAgent: [OK] Configuration complete: MCQ: 8, Written: 2, Difficulty: beginner
+[INFO] Agent.AssignmentGeneratorAgent: Generating MCQ questions...: Creating 8 multiple-choice questions
+[INFO] Agent.AssignmentGeneratorAgent: [OK] MCQ questions ready: Generated 8 MCQ questions
+[INFO] Agent.AssignmentGeneratorAgent: Generating written questions...: Creating 2 written questions
+[INFO] Agent.AssignmentGeneratorAgent: [OK] Written questions ready: Generated 2 written questions
+[INFO] AppFile: Section: 📋 ASSIGNMENT CONFIGURATION (Auto-decided by AI)
+[INFO] AppFile: 📝 MCQ Questions: 8
+[INFO] AppFile: 📝 Written Questions: 2
+[INFO] AppFile: 📊 Difficulty: BEGINNER
+[INFO] AppFile: 🎯 Passing Score: 70%
+[INFO] AppFile: 💡 Reasoning: The course covers a wide breadth of complex technical topics (12 lessons across 3 phases), justifying a higher number of MCQs to ensure coverage. Since the user is a beginner, the difficulty is kept low and written questions are limited to a small number to assess basic application without overwhelming them.
+[INFO] AppFile: 
+⏱️ Time Limit: 23 minutes
+[INFO] AppFile: 📝 Total Questions: 10
+[INFO] AppFile: Section: 📌 MULTIPLE CHOICE QUESTIONS
+[INFO] AppFile: 
+1. What is the primary purpose of software development as described in the introductory context?
+[INFO] AppFile:    Topic: Software Development
+[INFO] AppFile:    A. To create hardware components
+[INFO] AppFile:    B. To build applications that perform specific tasks like social media feeds or banking transactions
+[INFO] AppFile:    C. To replace the need for programming languages
+[INFO] AppFile:    D. To manage physical library books
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+2. In the context of programming languages, what is the primary challenge when giving instructions to a computer?
+[INFO] AppFile:    Topic: Programming Languages
+[INFO] AppFile:    A. The computer has no memory
+[INFO] AppFile:    B. The computer requires physical tools to operate
+[INFO] AppFile:    C. The need for a common language or translation to communicate instructions effectively
+[INFO] AppFile:    D. The lack of available hardware
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+3. Why is the study of Data Structures and Algorithms (DSA) compared to organizing a library of 10,000 books?
+[INFO] AppFile:    Topic: Data Structures and Algorithms
+[INFO] AppFile:    A. To emphasize the importance of physical storage
+[INFO] AppFile:    B. To demonstrate that piling data randomly is the most efficient method
+[INFO] AppFile:    C. To highlight how organization and structure impact the efficiency of finding information
+[INFO] AppFile:    D. To explain how to write a research paper
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+4. Which of the following best describes the role of Git in software development?
+[INFO] AppFile:    Topic: Version Control (Git)
+[INFO] AppFile:    A. A tool for designing doghouses
+[INFO] AppFile:    B. A system for organizing physical libraries
+[INFO] AppFile:    C. A 'time machine' for code that allows developers to track changes and revert to previous versions
+[INFO] AppFile:    D. A programming language used for banking apps
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+5. According to the lesson on Software Architecture, why is a 'blueprint' necessary for complex projects compared to simple ones (like a doghouse)?
+[INFO] AppFile:    Topic: Software Architecture and Design Patterns
+[INFO] AppFile:    A. Because doghouses require more planning than software
+[INFO] AppFile:    B. To ensure the project is scalable, stable, and successful as complexity increases
+[INFO] AppFile:    C. To avoid using wood and nails
+[INFO] AppFile:    D. Because software cannot be built without physical blueprints
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+6. If a developer wants to implement a specific way of organizing data to ensure a search is fast, which topic are they applying?
+[INFO] AppFile:    Topic: Data Structures and Algorithms
+[INFO] AppFile:    A. Version Control (Git)
+[INFO] AppFile:    B. Software Architecture and Design Patterns
+[INFO] AppFile:    C. Data Structures and Algorithms
+[INFO] AppFile:    D. Hardware Engineering
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+7. Which tool would a developer use if they wanted to try a completely different approach to a feature without deleting their original, working code?
+[INFO] AppFile:    Topic: Version Control (Git)
+[INFO] AppFile:    A. A Programming Language
+[INFO] AppFile:    B. Git
+[INFO] AppFile:    C. A Data Structure
+[INFO] AppFile:    D. A Design Pattern
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+8. What is the relationship between Programming Languages and Software Development?
+[INFO] AppFile:    Topic: Programming Languages
+[INFO] AppFile:    A. They are the same thing
+[INFO] AppFile:    B. Programming languages are the tools used within software development to give instructions to the computer
+[INFO] AppFile:    C. Programming languages replace the need for software architecture
+[INFO] AppFile:    D. Software development is a subset of a single programming language
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: Section: 📌 WRITTEN/ESSAY QUESTIONS
+[INFO] AppFile: 
+1. Compare and contrast the role of a programming language with the role of data structures and algorithms in the software development process. How do they work together to create an efficient application?
+[INFO] AppFile:    Topic: Programming Languages & Data Structures and Algorithms
+[INFO] AppFile:    Max Score: 10
+[INFO] AppFile: 
+[INFO] AppFile:    Enter your answer (type 'skip' to skip this question):
+[INFO] App: Waiting for user input:    Answer...
+[INFO] AppFile: 
+2. Explain the importance of using version control (like Git) and software architecture when working on a large-scale project. What risks are mitigated by implementing these practices compared to 'winging it'?
+[INFO] AppFile:    Topic: Version Control & Software Architecture
+[INFO] AppFile:    Max Score: 10
+[INFO] AppFile: 
+[INFO] AppFile:    Enter your answer (type 'skip' to skip this question):
+[INFO] App: Waiting for user input:    Answer...
+[INFO] AppFile: 
+🔄 Evaluating your answers...
+[INFO] Agent.AssignmentEvaluatorAgent: Starting evaluation...: Evaluating assignment: assign_1_20260727_18...
+[INFO] Agent.AssignmentEvaluatorAgent: Checking MCQ answers...: Checking 8 multiple-choice questions
+[INFO] Agent.AssignmentEvaluatorAgent: [OK] MCQ evaluation complete: Score: 0/8
+[INFO] Agent.AssignmentEvaluatorAgent: Evaluating written answers...: Using LLM to grade 2 written answers
+[INFO] Agent.AssignmentEvaluatorAgent: [OK] Written evaluation complete: Score: 0/20
+[INFO] Agent.AssignmentEvaluatorAgent: [OK] Evaluation complete: Grade: F, Score: 0.0%
+[INFO] AppFile: Section: 📊 ASSIGNMENT RESULTS
+[INFO] AppFile: 
+📌 Overall Score: 0.0%
+[INFO] AppFile: 📊 Grade: F
+[INFO] AppFile: ✅ MCQ: 0/8 (0.0%)
+[INFO] AppFile: 📝 Written: 0/20 (0.0%)
+[INFO] AppFile: 🎯 Passing Score: 70%
+[INFO] AppFile: 📈 Status: ❌ NEEDS REVIEW
+[INFO] AppFile: 
+💬 Feedback: Your score: F. You answered 0/8 MCQ questions correctly.
+[INFO] AppFile: 📚 Recommendation: Please review the material thoroughly and try the assignment again.
+[INFO] AppFile: 
+❌ Incorrect Answers:
+[INFO] AppFile:    • What is the primary purpose of software development as described in the introductory context?
+[INFO] AppFile:      Correct: 1
+[INFO] AppFile:      Your answer: 0
+[INFO] AppFile:      Explanation: Software development is the process of creating the 'magic behind the screen' that allows apps like Instagram and banking apps to function.
+[INFO] AppFile:    • In the context of programming languages, what is the primary challenge when giving instructions to a computer?
+[INFO] AppFile:      Correct: 2
+[INFO] AppFile:      Your answer: 0
+[INFO] AppFile:      Explanation: The analogy of the peanut butter and jelly sandwich illustrates that programming languages act as the bridge to communicate instructions to a system that doesn't naturally speak human language.
+[INFO] AppFile:    • Why is the study of Data Structures and Algorithms (DSA) compared to organizing a library of 10,000 books?
+[INFO] AppFile:      Correct: 2
+[INFO] AppFile:      Your answer: 0
+[INFO] AppFile:      Explanation: DSA is described as the 'Blueprint of Efficiency,' showing that how data is organized (like books in a library) determines how quickly it can be accessed.
+[INFO] AppFile: 
+📚 Areas for Improvement:
+[INFO] AppFile:    • Review: Core Concepts (multiple incorrect)
+[INFO] AppFile:    • Review: Structures (1 incorrect)
+[INFO] AppFile:    • Review: According (1 incorrect)
+[INFO] AppFile: 
+💾 Progress saved for user: admin (ID: 1)
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ──────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!
+[INFO] Ollama: Using Ollama model: gemma4:31b-cloud
+[INFO] AppFile: Section: 🔐 JINVEXA LOGIN
+[INFO] AppFile: 
+📋 Available users: admin, alice, bob, carol, testuser
+[INFO] AppFile:    (Users stored in MongoDB)
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: 👤 Username...
+[INFO] App: Waiting for user input: 🔑 Password...
+[INFO] AppFile: 
+✅ Welcome back, admin! 🎉
+[INFO] AppFile: Section: 
+[INFO] App: Starting Jinvexa Learning AI for user: admin (ID: 1)
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📝 MODE 4: Assignment Layer
+[INFO] AppFile: 
+📋 Available completed courses for 'admin':
+[INFO] AppFile: --------------------------------------------------
+[INFO] AppFile: 1. Topic: Software Development
+[INFO] AppFile:    Session: 1_20260727_183805_90...
+[INFO] AppFile:    Phases: 4
+[INFO] AppFile:    Total Time: 36 hours
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: 
+🔍 Select course for assignment...
+[INFO] AppFile: 
+📚 Generating assignment for: Software Development
+[INFO] AppFile: 
+🧠 AI is analyzing the course to configure the assignment...
+[INFO] Agent.AssignmentGeneratorAgent: Starting assignment generation...: Generating for session: 1_20260727_183805_90...
+[INFO] Agent.AssignmentGeneratorAgent: AI configuring assignment...: Analyzing course complexity and user level
+[INFO] Agent.AssignmentGeneratorAgent: [OK] Configuration complete: MCQ: 8, Written: 2, Difficulty: beginner
+[INFO] Agent.AssignmentGeneratorAgent: Generating MCQ questions...: Creating 8 multiple-choice questions
+[INFO] Agent.AssignmentGeneratorAgent: [OK] MCQ questions ready: Generated 8 MCQ questions
+[INFO] Agent.AssignmentGeneratorAgent: Generating written questions...: Creating 2 written questions
+[INFO] Agent.AssignmentGeneratorAgent: [OK] Written questions ready: Generated 2 written questions
+[INFO] AppFile: Section: 📋 ASSIGNMENT CONFIGURATION (Auto-decided by AI)
+[INFO] AppFile: 📝 MCQ Questions: 8
+[INFO] AppFile: 📝 Written Questions: 2
+[INFO] AppFile: 📊 Difficulty: BEGINNER
+[INFO] AppFile: 🎯 Passing Score: 60%
+[INFO] AppFile: 💡 Reasoning: The course covers a wide breadth of complex topics (DevOps, Architecture, DSA), but the user is a beginner with a 0% previous score. A higher number of MCQs provides necessary scaffolding, while a low passing score and beginner difficulty encourage initial success and engagement.
+[INFO] AppFile: 
+⏱️ Time Limit: 23 minutes
+[INFO] AppFile: 📝 Total Questions: 10
+[INFO] AppFile: Section: 📌 MULTIPLE CHOICE QUESTIONS
+[INFO] AppFile: 
+1. What is the primary purpose of software development as described in the introductory concepts?
+[INFO] AppFile:    Topic: Software Development
+[INFO] AppFile:    A. To create physical hardware components
+[INFO] AppFile:    B. To build applications that perform specific tasks, like managing photos or secure banking
+[INFO] AppFile:    C. To replace the need for programming languages
+[INFO] AppFile:    D. To organize physical libraries
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+2. In the context of programming languages, why is a specific 'language' necessary when interacting with a computer?
+[INFO] AppFile:    Topic: Programming Languages
+[INFO] AppFile:    A. Because computers can understand any human language naturally
+[INFO] AppFile:    B. To make the computer run faster without any code
+[INFO] AppFile:    C. To provide a structured way to communicate instructions that the computer can understand
+[INFO] AppFile:    D. To eliminate the need for data structures
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+3. Which of the following best describes the purpose of Data Structures and Algorithms (DSA)?
+[INFO] AppFile:    Topic: Data Structures and Algorithms
+[INFO] AppFile:    A. To write a research paper
+[INFO] AppFile:    B. To act as a blueprint for efficiency in organizing and processing data
+[INFO] AppFile:    C. To manage version control in a team
+[INFO] AppFile:    D. To design the physical layout of a doghouse
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+4. What is the primary benefit of using a version control system like Git?
+[INFO] AppFile:    Topic: Version Control (Git)
+[INFO] AppFile:    A. It automatically writes the code for the developer
+[INFO] AppFile:    B. It allows developers to track changes and revert to previous versions of their work
+[INFO] AppFile:    C. It replaces the need for software architecture
+[INFO] AppFile:    D. It is used primarily for organizing physical libraries
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+5. Why is Software Architecture and Design Patterns important for complex projects?
+[INFO] AppFile:    Topic: Software Architecture and Design Patterns
+[INFO] AppFile:    A. Because it allows developers to 'wing it' without a plan
+[INFO] AppFile:    B. It is only useful for building small items like doghouses
+[INFO] AppFile:    C. It provides a structured blueprint to ensure the success and scalability of a system
+[INFO] AppFile:    D. It eliminates the need for programming languages
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+6. If you have 10,000 books and throw them in a giant pile, which fundamental concept are you failing to apply?
+[INFO] AppFile:    Topic: Data Structures and Algorithms
+[INFO] AppFile:    A. Version Control
+[INFO] AppFile:    B. Software Architecture
+[INFO] AppFile:    C. Data Structures and Algorithms
+[INFO] AppFile:    D. Programming Languages
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+7. Which scenario best illustrates the need for Git (Version Control)?
+[INFO] AppFile:    Topic: Version Control (Git)
+[INFO] AppFile:    A. Choosing a programming language for a new app
+[INFO] AppFile:    B. Trying a completely different direction in a project and needing to go back to a previous version
+[INFO] AppFile:    C. Organizing a list of names alphabetically
+[INFO] AppFile:    D. Deciding which wood to use for a doghouse
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: 
+8. Comparing a software project to building a house, what does 'Software Architecture' represent?
+[INFO] AppFile:    Topic: Software Architecture and Design Patterns
+[INFO] AppFile:    A. The tools used to hammer nails
+[INFO] AppFile:    B. The final paint color of the house
+[INFO] AppFile:    C. The blueprint that guides the construction process
+[INFO] AppFile:    D. The act of randomly putting pieces of wood together
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: Your answer (A-D)...
+[INFO] AppFile: Section: 📌 WRITTEN/ESSAY QUESTIONS
+[INFO] AppFile: 
+1. Explain the relationship between programming languages and data structures in the context of software development. Why is it insufficient to simply know a programming language without understanding how to organize data efficiently?
+[INFO] AppFile:    Topic: Programming Languages & Data Structures and Algorithms
+[INFO] AppFile:    Max Score: 10
+[INFO] AppFile: 
+[INFO] AppFile:    Enter your answer (type 'skip' to skip this question):
+[INFO] App: Waiting for user input:    Answer...
+[INFO] AppFile: 
+2. Compare the importance of using Version Control (Git) versus Software Architecture when starting a new project. How does each contribute to the long-term maintainability and stability of a software application?
+[INFO] AppFile:    Topic: Version Control & Software Architecture
+[INFO] AppFile:    Max Score: 10
+[INFO] AppFile: 
+[INFO] AppFile:    Enter your answer (type 'skip' to skip this question):
+[INFO] App: Waiting for user input:    Answer...
+[INFO] AppFile: 
+🔄 Evaluating your answers...
+[INFO] Agent.AssignmentEvaluatorAgent: Starting evaluation...: Evaluating assignment: assign_1_20260727_18...
+[INFO] Agent.AssignmentEvaluatorAgent: Checking MCQ answers...: Checking 8 multiple-choice questions
+[INFO] Agent.AssignmentEvaluatorAgent: [OK] MCQ evaluation complete: Score: 0/8
+[INFO] Agent.AssignmentEvaluatorAgent: Evaluating written answers...: Using LLM to grade 2 written answers
+[INFO] Agent.AssignmentEvaluatorAgent: [OK] Written evaluation complete: Score: 0/20
+[INFO] Agent.AssignmentEvaluatorAgent: [OK] Evaluation complete: Grade: F, Score: 0.0%
+[INFO] AppFile: Section: 📊 ASSIGNMENT RESULTS
+[INFO] AppFile: 
+📌 Overall Score: 0.0%
+[INFO] AppFile: 📊 Grade: F
+[INFO] AppFile: ✅ MCQ: 0/8 (0.0%)
+[INFO] AppFile: 📝 Written: 0/20 (0.0%)
+[INFO] AppFile: 🎯 Passing Score: 60%
+[INFO] AppFile: 📈 Status: ❌ NEEDS REVIEW
+[INFO] AppFile: 
+💬 Feedback: Your score: F. You answered 0/8 MCQ questions correctly.
+[INFO] AppFile: 📚 Recommendation: Please review the material thoroughly and try the assignment again.
+[INFO] AppFile: 
+❌ Incorrect Answers:
+[INFO] AppFile:    • What is the primary purpose of software development as described in the introductory concepts?
+[INFO] AppFile:      Correct: 1
+[INFO] AppFile:      Your answer: 0
+[INFO] AppFile:      Explanation: Software development is the process of creating applications, such as Instagram or banking apps, to solve problems or provide services.
+[INFO] AppFile:    • In the context of programming languages, why is a specific 'language' necessary when interacting with a computer?
+[INFO] AppFile:      Correct: 2
+[INFO] AppFile:      Your answer: 0
+[INFO] AppFile:      Explanation: Programming languages act as the medium of communication between the human developer and the computer to ensure instructions are executed correctly.
+[INFO] AppFile:    • Which of the following best describes the purpose of Data Structures and Algorithms (DSA)?
+[INFO] AppFile:      Correct: 1
+[INFO] AppFile:      Your answer: 0
+[INFO] AppFile:      Explanation: DSA provides the blueprint for efficiency, ensuring that data (like books in a library) is organized and accessed in the most optimal way.
+[INFO] AppFile: 
+📚 Areas for Improvement:
+[INFO] AppFile:    • Review: Core Concepts (multiple incorrect)
+[INFO] AppFile:    • Review: Structures (1 incorrect)
+[INFO] AppFile:    • Review: Software (1 incorrect)
+[INFO] AppFile: 
+💾 Progress saved for user: admin (ID: 1)
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📊 USER LEARNING STATISTICS
+[INFO] AppFile: 
+📊 Stats for: admin (ID: 1)
+[INFO] AppFile:    Sessions: 2
+[INFO] AppFile:    Messages: 0
+[INFO] AppFile:    Known Concepts: 6
+[INFO] AppFile:    Topics: career transition, artificial intelligence, machine learning, deep learning, python
+[INFO] AppFile: 
+📚 Learning Plans:
+[INFO] AppFile:    • Software Development - career (36h)
+[INFO] AppFile:    • AI Engineering - career (60h)
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📋 USER SESSIONS
+[INFO] AppFile: 
+📋 Found 2 sessions for admin:
+[INFO] AppFile: --------------------------------------------------
+[INFO] AppFile: 1. 1_20260727_183805_90... (goal)
+[INFO] AppFile:    Created: 2026-07-27T18:38:05
+[INFO] AppFile:    Messages: 0
+[INFO] AppFile:    Topic: Unknown
+[INFO] AppFile: 
+[INFO] AppFile: 2. 1_20260727_162011_87... (goal)
+[INFO] AppFile:    Created: 2026-07-27T16:20:11
+[INFO] AppFile:    Messages: 0
+[INFO] AppFile:    Topic: Unknown
+[INFO] AppFile: 
+[INFO] App: Waiting for user input: 🔍 Enter session number to view details (or Enter t...
+[INFO] AppFile: 
+📋 Session Details:
+[INFO] AppFile: {
+  "session_id": "1_20260727_183805_900d1bdb",
+  "user_id": "1",
+  "mode": "goal",
+  "created_at": "2026-07-27T18:38:05.954787",
+  "last_accessed": "2026-07-27T19:32:45.846568",
+  "message_count": 0,
+  "has_learning_plan": true,
+  "topics": [],
+  "main_topic": null
+}
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📊 TEACHING STATUS
+[INFO] App: Waiting for user input: 
+📎 Enter session ID...
+[INFO] AppFile: 
+📌 Course: Unknown
+[INFO] AppFile: 📝 Total Lessons: 0
+[INFO] AppFile: 📄 Text Files: 0
+[INFO] AppFile: 🎧 Audio Files: 0
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 📊 TEACHING STATUS
+[INFO] App: Waiting for user input: 
+📎 Enter session ID...
+[INFO] AppFile: 
+📌 Course: Unknown
+[INFO] AppFile: 📝 Total Lessons: 0
+[INFO] AppFile: 📄 Text Files: 0
+[INFO] AppFile: 🎧 Audio Files: 0
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: Section: 🤖 OLLAMA MODEL INFO
+[INFO] AppFile: 
+📌 Model: gemma4:31b-cloud
+[INFO] AppFile:   ┌─ Jinvexa Learning Platform ───────────────────────────────────────────────
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Discovery
+[INFO] AppFile:   │    1.  Goal-Based Learning
+[INFO] AppFile:   │    2.  Reference-Based Learning
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Creation
+[INFO] AppFile:   │    3.  Teaching Layer (Generate Course)
+[INFO] AppFile:   │    4.  Assignment Layer (Take Assignment)
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Guidance
+[INFO] AppFile:   │    5.  Mentoring Layer (Chat with AI Mentor)
+[INFO] AppFile:   │    6.  Mentoring History
+[INFO] AppFile:   │
+[INFO] AppFile:   │  Progress
+[INFO] AppFile:   │    7.  View Progress
+[INFO] AppFile:   │    8.  View Stats
+[INFO] AppFile:   │    9.  View Sessions
+[INFO] AppFile:   │    10.  Continue Conversation
+[INFO] AppFile:   │
+[INFO] AppFile:   │  System
+[INFO] AppFile:   │    11.  Teaching Status
+[INFO] AppFile:   │    12.  Model Info
+[INFO] AppFile:   │    13.  Change Model
+[INFO] AppFile:   │    14.  Exit
+[INFO] AppFile:   │
+[INFO] AppFile:   └─────────────────────────────────────────────────────────────────────────────────
+[INFO] App: Waiting for user input: 
+  ▶  Enter choice (1-14)...
+[INFO] AppFile: 
+  ✦ Thank you for using Jinvexa!
+[INFO] AppFile:   ✦ Good luck with your learning journey!

@@ -496,7 +496,7 @@ class MemoryHandler:
         
         return parsed
     
-    # ==================== MONGODB BACKEND METHODS (FIXED) ====================
+    # ==================== MONGODB BACKEND METHODS ====================
     
     def _save_session_mongodb(self, session: SessionMemory):
         """Save session to MongoDB"""
@@ -506,7 +506,6 @@ class MemoryHandler:
             return
         
         data = session.to_dict()
-        
         collection.update_one(
             {"session_id": session.session_id},
             {"$set": data},
@@ -540,12 +539,10 @@ class MemoryHandler:
         
         sessions = []
         cursor = collection.find({"user_id": user_id}).sort("created_at", -1).limit(limit)
-        
         for data in cursor:
             if "_id" in data:
                 del data["_id"]
             sessions.append(SessionMemory.from_dict(data))
-        
         return sessions
     
     def _save_profile_mongodb(self, profile: UserProfile):
@@ -561,7 +558,6 @@ class MemoryHandler:
             "created_at": profile.created_at,
             "updated_at": profile.updated_at
         }
-        
         collection.update_one(
             {"user_id": profile.user_id},
             {"$set": data},
@@ -616,9 +612,39 @@ class MemoryHandler:
                 })
     
     # ==================== LESSON MANAGEMENT (TeachingAgent) ====================
-
+    
     def save_lesson(self, session_id: str, topic: str, phase_title: str, lesson_text: str) -> str:
-        """Save a lesson text file."""
+        """
+        Save a lesson.
+        If storage_type == "mongodb", stores only in MongoDB.
+        If storage_type == "json", stores as a file.
+        """
+        from datetime import datetime
+        
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("lessons")
+            if collection is not None:
+                doc = {
+                    "session_id": session_id,
+                    "topic": topic,
+                    "phase_title": phase_title,
+                    "content": lesson_text,
+                    "file_path": None,
+                    "file_size": len(lesson_text),
+                    "created_at": datetime.now().isoformat(),
+                    "metadata": {}
+                }
+                result = collection.insert_one(doc)
+                return str(result.inserted_id)
+            else:
+                print("⚠️ MongoDB collection not available, falling back to JSON")
+                return self._save_lesson_json(session_id, topic, phase_title, lesson_text)
+        
+        # JSON storage
+        return self._save_lesson_json(session_id, topic, phase_title, lesson_text)
+    
+    def _save_lesson_json(self, session_id: str, topic: str, phase_title: str, lesson_text: str) -> str:
+        """Internal: save lesson as JSON file."""
         import re
         from datetime import datetime
         from pathlib import Path
@@ -638,24 +664,53 @@ class MemoryHandler:
             f.write("="*60 + "\n\n")
             f.write(lesson_text)
         
-        # Also save metadata to MongoDB if available
-        if self.storage_type == "mongodb":
-            collection = self._get_collection("lessons")
-            if collection is not None:
-                collection.insert_one({
-                    "session_id": session_id,
-                    "topic": topic,
-                    "phase_title": phase_title,
-                    "file_path": str(filepath),
-                    "file_size": len(lesson_text),
-                    "created_at": datetime.now().isoformat(),
-                    "metadata": {}
-                })
-        
         return str(filepath)
-
+    
+    def get_lesson_content(self, lesson_file: str) -> str:
+        """Read lesson content from file."""
+        from pathlib import Path
+        try:
+            filepath = Path(lesson_file)
+            if filepath.exists():
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    return f.read()
+        except:
+            pass
+        return ""
+    
     def save_manifest(self, session_id: str, manifest: list, main_topic: str):
-        """Save manifest JSON and readable TXT."""
+        """
+        Save manifest.
+        If storage_type == "mongodb", stores only in MongoDB.
+        If storage_type == "json", saves as JSON and TXT files.
+        """
+        from datetime import datetime
+        
+        manifest_data = {
+            "session_id": session_id,
+            "main_topic": main_topic,
+            "generated_at": datetime.now().isoformat(),
+            "total_lessons": len(manifest),
+            "watch_order": manifest
+        }
+        
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("manifests")
+            if collection is not None:
+                collection.update_one(
+                    {"session_id": session_id},
+                    {"$set": manifest_data},
+                    upsert=True
+                )
+                return
+            else:
+                print("⚠️ MongoDB collection not available, falling back to JSON")
+        
+        # JSON fallback
+        self._save_manifest_json(session_id, manifest, main_topic)
+    
+    def _save_manifest_json(self, session_id: str, manifest: list, main_topic: str):
+        """Internal: save manifest as JSON files."""
         import json
         from datetime import datetime
         from pathlib import Path
@@ -675,17 +730,7 @@ class MemoryHandler:
         with open(manifest_file, 'w', encoding='utf-8') as f:
             json.dump(manifest_data, f, indent=2, ensure_ascii=False)
         
-        # Also save to MongoDB if available
-        if self.storage_type == "mongodb":
-            collection = self._get_collection("manifests")
-            if collection is not None:
-                collection.update_one(
-                    {"session_id": session_id},
-                    {"$set": manifest_data},
-                    upsert=True
-                )
-        
-        # Save human-readable version
+        # Also human-readable version
         readable_file = manifest_dir / f"{session_id}_watch_order.txt"
         with open(readable_file, 'w', encoding='utf-8') as f:
             f.write(f"Course: {main_topic}\n")
@@ -693,25 +738,66 @@ class MemoryHandler:
             f.write(f"Generated: {datetime.now().isoformat()}\n")
             f.write("="*60 + "\n\n")
             f.write("📚 WATCH ORDER\n\n")
-            
             for item in manifest:
                 order = item.get("order", 0)
                 phase = item.get("phase", "")
                 topic = item.get("topic", "")
                 content_type = item.get("content_type", "text")
                 gender = item.get("gender", "")
-                
-                if content_type == "audio":
-                    icon = f"🎧 ({gender})"
-                else:
-                    icon = "📄"
-                
+                icon = f"🎧 ({gender})" if content_type == "audio" else "📄"
                 f.write(f"{order}. {icon} {topic}\n")
                 f.write(f"   Phase: {phase}\n")
                 f.write(f"   Type: {content_type.upper()}\n\n")
-
+    
+    def get_manifest(self, session_id: str) -> dict:
+        """Get manifest data for a session."""
+        import json
+        from pathlib import Path
+        
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("manifests")
+            if collection is not None:
+                data = collection.find_one({"session_id": session_id})
+                if data:
+                    if "_id" in data:
+                        del data["_id"]
+                    return data
+        
+        # Fallback to JSON
+        manifest_file = Path(f"learn_files/manifests/{session_id}_manifest.json")
+        if manifest_file.exists():
+            try:
+                with open(manifest_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                pass
+        return {}
+    
     def save_audio_metadata(self, session_id: str, topic: str, audio_file: str, gender: str):
-        """Save audio metadata."""
+        """Save audio metadata. If MongoDB, store in MongoDB only."""
+        from datetime import datetime
+        
+        doc = {
+            "session_id": session_id,
+            "topic": topic,
+            "gender": gender,
+            "file_path": audio_file,
+            "created_at": datetime.now().isoformat()
+        }
+        
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("audio")
+            if collection is not None:
+                collection.insert_one(doc)
+                return
+            else:
+                print("⚠️ MongoDB collection not available, falling back to JSON")
+        
+        # JSON fallback
+        self._save_audio_metadata_json(session_id, topic, audio_file, gender)
+    
+    def _save_audio_metadata_json(self, session_id: str, topic: str, audio_file: str, gender: str):
+        """Internal: save audio metadata as JSON file."""
         import json
         from datetime import datetime
         from pathlib import Path
@@ -740,21 +826,26 @@ class MemoryHandler:
         
         with open(audio_metadata_file, 'w', encoding='utf-8') as f:
             json.dump(existing, f, indent=2, ensure_ascii=False)
-        
-        # Also save to MongoDB if available
-        if self.storage_type == "mongodb":
-            collection = self._get_collection("audio")
-            if collection is not None:
-                collection.insert_one({
-                    "session_id": session_id,
-                    "topic": topic,
-                    "gender": gender,
-                    "file_path": audio_file,
-                    "created_at": datetime.now().isoformat()
-                })
-
+    
     def save_course_metadata(self, session_id: str, course_content: dict):
-        """Save course metadata."""
+        """Save course metadata. If MongoDB, store in MongoDB only."""
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("course_metadata")
+            if collection is not None:
+                collection.update_one(
+                    {"session_id": session_id},
+                    {"$set": course_content},
+                    upsert=True
+                )
+                return
+            else:
+                print("⚠️ MongoDB collection not available, falling back to JSON")
+        
+        # JSON fallback
+        self._save_course_metadata_json(session_id, course_content)
+    
+    def _save_course_metadata_json(self, session_id: str, course_content: dict):
+        """Internal: save course metadata as JSON file."""
         import json
         from pathlib import Path
         
@@ -764,65 +855,64 @@ class MemoryHandler:
         
         with open(course_metadata_file, 'w', encoding='utf-8') as f:
             json.dump(course_content, f, indent=2, ensure_ascii=False)
-
-    def get_lesson_content(self, lesson_file: str) -> str:
-        """Read lesson content from file."""
-        from pathlib import Path
-        try:
-            filepath = Path(lesson_file)
-            if filepath.exists():
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    return f.read()
-        except:
-            pass
-        return ""
-
-    def get_manifest(self, session_id: str) -> dict:
-        """Get manifest data for a session."""
-        import json
-        from pathlib import Path
-        
-        manifest_file = Path(f"learn_files/manifests/{session_id}_manifest.json")
-        if manifest_file.exists():
-            try:
-                with open(manifest_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except:
-                pass
-        
-        # Try MongoDB if available
-        if self.storage_type == "mongodb":
-            collection = self._get_collection("manifests")
-            if collection is not None:
-                data = collection.find_one({"session_id": session_id})
-                if data:
-                    if "_id" in data:
-                        del data["_id"]
-                    return data
-        
-        return {}
-
+    
+    # ==================== LIST SESSIONS WITH PLANS ====================
+    
     def list_sessions_with_plans(self) -> list:
-        """List all sessions that have learning plans."""
+        """
+        List all sessions that have learning plans.
+        If using MongoDB, queries the sessions collection; otherwise falls back to JSON.
+        """
         import json
         from pathlib import Path
-        
+
         sessions = []
+
+        # --- Query MongoDB if available ---
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("sessions")
+            if collection is not None:
+                try:
+                    cursor = collection.find({"learning_plan": {"$exists": True, "$ne": None}})
+                    for data in cursor:
+                        if "_id" in data:
+                            del data["_id"]
+                        learning_plan = data.get('learning_plan')
+                        if isinstance(learning_plan, str):
+                            try:
+                                learning_plan = json.loads(learning_plan)
+                            except:
+                                continue
+                        if learning_plan and isinstance(learning_plan, dict):
+                            sessions.append({
+                                "session_id": data.get('session_id', ''),
+                                "user_id": data.get('user_id', ''),
+                                "mode": data.get('mode', ''),
+                                "created_at": data.get('created_at', ''),
+                                "main_topic": learning_plan.get('main_topic', 'Unknown'),
+                                "goal": learning_plan.get('goal', ''),
+                                "total_hours": learning_plan.get('estimated_time_hours', 0),
+                                "phase_count": len(learning_plan.get('roadmap', [])),
+                                "learning_plan": learning_plan
+                            })
+                    return sessions
+                except Exception as e:
+                    print(f"⚠️ MongoDB query error in list_sessions_with_plans: {e}")
+
+        # --- Fallback to JSON storage ---
         session_dir = self.storage_dir / "sessions"
         if session_dir.exists():
             for file_path in session_dir.glob("*.json"):
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         data = json.load(f)
-                    
                     learning_plan = data.get('learning_plan')
-                    if learning_plan:
-                        if isinstance(learning_plan, str):
-                            try:
-                                learning_plan = json.loads(learning_plan)
-                            except:
-                                pass
-                        
+                    if isinstance(learning_plan, str):
+                        try:
+                            learning_plan = json.loads(learning_plan)
+                        except:
+                            pass
+                    if learning_plan and isinstance(learning_plan, dict):
                         sessions.append({
                             "session_id": data.get('session_id', ''),
                             "user_id": data.get('user_id', ''),
@@ -835,42 +925,42 @@ class MemoryHandler:
                             "learning_plan": learning_plan
                         })
                 except Exception as e:
-                    print(f"⚠️ Error loading session: {e}")
-        
+                    print(f"⚠️ Error loading session from JSON: {e}")
+
         return sessions
-
-    def list_generated_lessons(self, session_id: str) -> list:
-        """List generated lessons for a session."""
-        import json
-        from pathlib import Path
-        
-        lessons = []
-        lessons_dir = Path("learn_files/lessons")
-        if lessons_dir.exists():
-            for file_path in lessons_dir.glob(f"{session_id}*.txt"):
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        lines = f.readlines()[:10]
-                        metadata = {}
-                        for line in lines:
-                            if ':' in line:
-                                key, value = line.split(':', 1)
-                                metadata[key.strip()] = value.strip()
-                    
-                    lessons.append({
-                        "file": str(file_path),
-                        "topic": metadata.get('Topic', 'Unknown'),
-                        "phase": metadata.get('Phase', 'Unknown'),
-                        "generated_at": metadata.get('Generated', 'Unknown')
-                    })
-                except:
-                    pass
-        return lessons
-
+    
     # ==================== ASSIGNMENT MANAGEMENT ====================
-
+    
     def save_assignment(self, assignment: dict) -> str:
-        """Save assignment to file."""
+        """
+        Save assignment.
+        If MongoDB: store in assignments collection.
+        If JSON: save as JSON file.
+        """
+        import json
+        from datetime import datetime
+        
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("assignments")
+            if collection is not None:
+                assignment_id = assignment.get("assignment_id")
+                if not assignment_id:
+                    assignment_id = f"assign_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                    assignment["assignment_id"] = assignment_id
+                collection.update_one(
+                    {"assignment_id": assignment_id},
+                    {"$set": assignment},
+                    upsert=True
+                )
+                return assignment_id
+            else:
+                print("⚠️ MongoDB collection not available, falling back to JSON")
+        
+        # JSON fallback
+        return self._save_assignment_json(assignment)
+    
+    def _save_assignment_json(self, assignment: dict) -> str:
+        """Internal: save assignment as JSON file."""
         import json
         from pathlib import Path
         
@@ -884,12 +974,22 @@ class MemoryHandler:
             json.dump(assignment, f, indent=2, ensure_ascii=False)
         
         return str(assignment_file)
-
+    
     def get_assignment(self, assignment_id: str) -> dict:
         """Get assignment by ID."""
         import json
         from pathlib import Path
         
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("assignments")
+            if collection is not None:
+                data = collection.find_one({"assignment_id": assignment_id})
+                if data:
+                    if "_id" in data:
+                        del data["_id"]
+                    return data
+        
+        # Fallback to JSON
         sessions_dir = Path("learn_files/assignments/sessions")
         if sessions_dir.exists():
             for session_dir in sessions_dir.iterdir():
@@ -899,15 +999,31 @@ class MemoryHandler:
                         with open(assignment_file, 'r', encoding='utf-8') as f:
                             return json.load(f)
         return None
-
+    
     def list_assignments(self, session_id: str) -> list:
         """List all assignments for a session."""
         import json
         from pathlib import Path
         
         assignments = []
-        session_dir = Path("learn_files/assignments/sessions") / session_id
         
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("assignments")
+            if collection is not None:
+                cursor = collection.find({"session_id": session_id})
+                for data in cursor:
+                    if "_id" in data:
+                        del data["_id"]
+                    assignments.append({
+                        "assignment_id": data.get("assignment_id", ""),
+                        "generated_at": data.get("generated_at", ""),
+                        "total_questions": data.get("total_questions", 0),
+                        "difficulty": data.get("difficulty", "intermediate")
+                    })
+                return sorted(assignments, key=lambda x: x.get("generated_at", ""), reverse=True)
+        
+        # JSON fallback
+        session_dir = Path("learn_files/assignments/sessions") / session_id
         if session_dir.exists():
             for file_path in session_dir.glob("*.json"):
                 try:
@@ -923,9 +1039,39 @@ class MemoryHandler:
                     pass
         
         return sorted(assignments, key=lambda x: x.get("generated_at", ""), reverse=True)
-
+    
     def save_assignment_result(self, user_id: str, assignment_id: str, result: dict) -> str:
-        """Save evaluation result and update profile."""
+        """
+        Save assignment result.
+        If MongoDB: store in results collection.
+        If JSON: save as JSON file.
+        """
+        import json
+        from datetime import datetime
+        from pathlib import Path
+        
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("results")
+            if collection is not None:
+                result["assignment_id"] = assignment_id
+                result["user_id"] = user_id
+                result["evaluated_at"] = datetime.now().isoformat()
+                collection.update_one(
+                    {"assignment_id": assignment_id, "user_id": user_id},
+                    {"$set": result},
+                    upsert=True
+                )
+                # Update profile
+                self._update_profile_with_result(user_id, assignment_id, result)
+                return assignment_id
+            else:
+                print("⚠️ MongoDB collection not available, falling back to JSON")
+        
+        # JSON fallback
+        return self._save_assignment_result_json(user_id, assignment_id, result)
+    
+    def _save_assignment_result_json(self, user_id: str, assignment_id: str, result: dict) -> str:
+        """Internal: save result as JSON file."""
         import json
         from datetime import datetime
         from pathlib import Path
@@ -938,6 +1084,12 @@ class MemoryHandler:
             json.dump(result, f, indent=2, ensure_ascii=False)
         
         # Also update user profile
+        self._update_profile_with_result(user_id, assignment_id, result)
+        
+        return str(result_file)
+    
+    def _update_profile_with_result(self, user_id: str, assignment_id: str, result: dict):
+        """Update user profile with assignment result."""
         profile = self.load_profile(user_id)
         if profile:
             profile.assignments.append({
@@ -947,17 +1099,26 @@ class MemoryHandler:
                 "date": datetime.now().isoformat()
             })
             self.save_profile(profile)
-        
-        return str(result_file)
-
+    
     def get_user_results(self, user_id: str) -> list:
         """Get all results for a user."""
         import json
         from pathlib import Path
         
         results = []
-        user_dir = Path("learn_files/assignments/results") / user_id
         
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("results")
+            if collection is not None:
+                cursor = collection.find({"user_id": user_id}).sort("evaluated_at", -1)
+                for data in cursor:
+                    if "_id" in data:
+                        del data["_id"]
+                    results.append(data)
+                return results
+        
+        # JSON fallback
+        user_dir = Path("learn_files/assignments/results") / user_id
         if user_dir.exists():
             for file_path in sorted(user_dir.glob("*.json"), reverse=True):
                 try:
@@ -967,9 +1128,36 @@ class MemoryHandler:
                     pass
         
         return results
-
+    
     def save_progress_summary(self, user_id: str, progress: dict) -> str:
-        """Save progress summary."""
+        """
+        Save progress summary.
+        If MongoDB: store in progress collection.
+        If JSON: save as JSON file.
+        """
+        import json
+        from datetime import datetime
+        from pathlib import Path
+        
+        if self.storage_type == "mongodb":
+            collection = self._get_collection("progress")
+            if collection is not None:
+                progress["user_id"] = user_id
+                progress["updated_at"] = datetime.now().isoformat()
+                collection.update_one(
+                    {"user_id": user_id},
+                    {"$set": progress},
+                    upsert=True
+                )
+                return f"progress_{user_id}"
+            else:
+                print("⚠️ MongoDB collection not available, falling back to JSON")
+        
+        # JSON fallback
+        return self._save_progress_summary_json(user_id, progress)
+    
+    def _save_progress_summary_json(self, user_id: str, progress: dict) -> str:
+        """Internal: save progress summary as JSON file."""
         import json
         from pathlib import Path
         
@@ -980,9 +1168,9 @@ class MemoryHandler:
             json.dump(progress, f, indent=2, ensure_ascii=False)
         
         return str(progress_file)
-
+    
     # ==================== MENTORING (SQLite) MANAGEMENT ====================
-
+    
     def init_mentoring_db(self):
         """Initialize mentoring SQLite database."""
         import sqlite3
@@ -1036,12 +1224,12 @@ class MemoryHandler:
         self.mentoring_cursor.execute("CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp)")
         
         self.mentoring_conn.commit()
-
+    
     def _ensure_mentoring_db(self):
         """Ensure mentoring DB is initialized."""
         if not hasattr(self, 'mentoring_conn'):
             self.init_mentoring_db()
-
+    
     def create_mentoring_conversation(self, user_id: str, session_id: str = None, mode: str = "session") -> str:
         """Create a new conversation."""
         from datetime import datetime
@@ -1069,7 +1257,7 @@ class MemoryHandler:
         
         self.mentoring_conn.commit()
         return str(self.mentoring_cursor.lastrowid)
-
+    
     def add_mentoring_message(self, conversation_id: str, role: str, content: str):
         """Add a message to a conversation."""
         from datetime import datetime
@@ -1090,7 +1278,7 @@ class MemoryHandler:
         """, (datetime.now().isoformat(), token_count, conversation_id))
         
         self.mentoring_conn.commit()
-
+    
     def get_mentoring_conversation_history(self, conversation_id: str, limit: int = 20) -> list:
         """Get conversation history."""
         self._ensure_mentoring_db()
@@ -1103,7 +1291,7 @@ class MemoryHandler:
         
         rows = self.mentoring_cursor.fetchall()
         return [{"role": row[0], "content": row[1], "timestamp": row[2]} for row in rows[::-1]]
-
+    
     def get_mentoring_conversation_info(self, conversation_id: str) -> dict:
         """Get conversation metadata."""
         self._ensure_mentoring_db()
@@ -1126,7 +1314,7 @@ class MemoryHandler:
                 "token_count": row[7]
             }
         return {}
-
+    
     def list_mentoring_conversations(self, user_id: str) -> list:
         """List all conversations for a user."""
         import json
@@ -1167,7 +1355,7 @@ class MemoryHandler:
             })
         
         return conversations
-
+    
     def get_mentoring_session_content(self, session_id: str) -> dict:
         """Get cached session content or load from manifest."""
         import json
@@ -1238,7 +1426,7 @@ class MemoryHandler:
         except Exception as e:
             print(f"⚠️ Error loading session content: {e}")
             return {"content": "", "topics": [], "phases": []}
-
+    
     def get_mentoring_all_user_content(self, user_id: str) -> dict:
         """Get all content from all sessions of a user."""
         all_topics = []
@@ -1260,7 +1448,7 @@ class MemoryHandler:
             "topics": list(set(all_topics))[:30],
             "phases": list(set(all_phases))[:15]
         }
-
+    
     def manage_mentoring_history(self, conversation_id: str):
         """Manage conversation history by summarizing old messages."""
         self._ensure_mentoring_db()
@@ -1291,7 +1479,7 @@ class MemoryHandler:
                 self.mentoring_conn.commit()
         except Exception as e:
             print(f"⚠️ History management error: {e}")
-
+    
     def garbage_collect_mentoring(self, max_conversation_age_days: int = 7, max_messages_per_session: int = 50):
         """Clean up old conversations."""
         from datetime import datetime, timedelta
@@ -1339,7 +1527,7 @@ class MemoryHandler:
             self.mentoring_conn.commit()
         except Exception as e:
             print(f"⚠️ Garbage collection error: {e}")
-
+    
     def get_mentoring_session_topic(self, session_id: str) -> str:
         """Get the topic of a session."""
         import json
@@ -1358,16 +1546,16 @@ class MemoryHandler:
                 pass
         
         return "Unknown"
-
+    
     def close_mentoring_db(self):
         """Close mentoring database connection."""
         if hasattr(self, 'mentoring_conn'):
             self.mentoring_conn.close()
-
+    
     def close(self):
         """Close all connections."""
         self.close_mentoring_db()
-
+    
     def export_data(self, user_id: str, export_dir: str = "exports") -> str:
         """Export all data for a user"""
         export_path = Path(export_dir) / user_id
