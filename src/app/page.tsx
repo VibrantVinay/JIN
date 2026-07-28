@@ -20,15 +20,12 @@ import {
   Lock,
   UserCheck,
   ChevronRight,
-  ChevronDown,
   Layers,
   ArrowRight,
   Clock,
   Zap,
   Loader2,
   GraduationCap,
-  LayoutDashboard,
-  HelpCircle,
   Check,
   AlertCircle,
 } from "lucide-react";
@@ -43,18 +40,16 @@ interface User {
 }
 
 export default function JinvexaCourseraUI() {
-  // Auth State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [authError, setAuthError] = useState("");
 
-  // Navigation & Layout
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
-  const [activeModel, setActiveModel] = useState("gemma4:31b-cloud (OpenRouter)");
+  const [activeModel, setActiveModel] = useState("nvidia/nemotron-3-super (NIM Cloud)");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Goal Discovery (Specialization Builder)
+  // Discovery State
   const [goalInput, setGoalInput] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [generatedRoadmap, setGeneratedRoadmap] = useState<any[]>([]);
@@ -67,13 +62,13 @@ export default function JinvexaCourseraUI() {
   const [coachMessages, setCoachMessages] = useState([
     {
       sender: "coach",
-      text: "Hello! I am your Jinvexa AI Learning Coach powered by Google Gemma 4. How can I assist with your coursework today?",
+      text: "Hello! I am your Jinvexa AI Learning Coach powered by NVIDIA Nemotron. How can I assist with your coursework today?",
     },
   ]);
   const [chatInput, setChatInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
 
-  // Graded Assessment State
+  // Quiz State
   const [activeQuizTopic, setActiveQuizTopic] = useState("Transformer Architectures & Attention");
   const [assignmentData, setAssignmentData] = useState<any>(null);
   const [isLoadingAssignment, setIsLoadingAssignment] = useState(false);
@@ -82,7 +77,6 @@ export default function JinvexaCourseraUI() {
   const [evalResult, setEvalResult] = useState<any>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
 
-  // Mock Login Handler
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (loginUsername === "admin" && loginPassword === "admin123") {
@@ -99,7 +93,6 @@ export default function JinvexaCourseraUI() {
     }
   };
 
-  // Live AI Goal Discovery Call (Gemma 4 31B via OpenRouter)
   const handleAnalyzeGoal = async () => {
     if (!goalInput.trim()) return;
     setIsAnalyzing(true);
@@ -107,21 +100,19 @@ export default function JinvexaCourseraUI() {
       const res = await fetch("/api/discovery", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal: goalInput, currentStep: 1 }),
+        body: JSON.stringify({ goal: goalInput }),
       });
       const data = await res.json();
       if (data.roadmap) {
         setGeneratedRoadmap(data.roadmap);
-        setActiveTab("discovery");
       }
     } catch (e) {
-      console.error(e);
+      console.error("Discovery Error:", e);
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  // Live AI Coach Chat Call
   const handleSendMessage = async () => {
     if (!chatInput.trim() || isThinking) return;
     const newMsgs = [...coachMessages, { sender: "user", text: chatInput }];
@@ -138,13 +129,12 @@ export default function JinvexaCourseraUI() {
       const data = await res.json();
       setCoachMessages([...newMsgs, { sender: "coach", text: data.response }]);
     } catch (e) {
-      setCoachMessages([...newMsgs, { sender: "coach", text: "⚠️ Unable to reach Gemma 4 reasoning engine." }]);
+      setCoachMessages([...newMsgs, { sender: "coach", text: "⚠️ Experienced a network delay. Please send your message once more." }]);
     } finally {
       setIsThinking(false);
     }
   };
 
-  // Live AI Quiz Generation & Grading
   const handleGenerateAssignment = async () => {
     setIsLoadingAssignment(true);
     setEvalResult(null);
@@ -185,7 +175,6 @@ export default function JinvexaCourseraUI() {
     }
   };
 
-  // Mock Course Curriculum Structure for Classroom Player
   const syllabus = [
     {
       module: "Module 1: Foundations of Large Language Models",
@@ -206,17 +195,16 @@ export default function JinvexaCourseraUI() {
     },
   ];
 
-  // --- LOGIN SCREEN ---
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center p-4 font-sans">
         <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
           <div className="flex flex-col items-center text-center space-y-2">
-            <div className="p-3 bg-blue-600 rounded-xl shadow-lg shadow-blue-600/30">
+            <div className="p-3 bg-emerald-600 rounded-xl shadow-lg shadow-emerald-600/30">
               <GraduationCap className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-white">Jinvexa Professional</h1>
-            <p className="text-xs text-slate-400">Enterprise AI Learning & Degree Platform</p>
+            <p className="text-xs text-slate-400">Powered by NVIDIA NIM Cloud Reasoning</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -227,7 +215,7 @@ export default function JinvexaCourseraUI() {
                 value={loginUsername}
                 onChange={(e) => setLoginUsername(e.target.value)}
                 placeholder="alice or admin"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 outline-none transition"
+                className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 outline-none transition"
               />
             </div>
             <div>
@@ -237,13 +225,13 @@ export default function JinvexaCourseraUI() {
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 outline-none transition"
+                className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 outline-none transition"
               />
             </div>
             {authError && <p className="text-xs text-rose-400 bg-rose-500/10 p-2.5 rounded-lg border border-rose-500/20 text-center">{authError}</p>}
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg shadow-md transition text-sm flex items-center justify-center gap-2"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg shadow-md transition text-sm flex items-center justify-center gap-2"
             >
               Continue to My Learning <ArrowRight className="w-4 h-4" />
             </button>
@@ -258,79 +246,48 @@ export default function JinvexaCourseraUI() {
     );
   }
 
-  // --- MAIN COURSERA-STYLE LMS LAYOUT ---
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      {/* 1. COURSERA TOP NAVBAR */}
       <header className="h-16 border-b border-slate-800 bg-slate-900/90 backdrop-blur px-6 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab("dashboard")}>
-            <div className="p-1.5 bg-blue-600 rounded-lg text-white font-bold shadow">
+            <div className="p-1.5 bg-emerald-600 rounded-lg text-white font-bold shadow">
               <GraduationCap className="w-5 h-5" />
             </div>
-            <span className="font-bold text-lg tracking-tight text-white">Jinvexa<span className="text-blue-500 font-normal">Plus</span></span>
+            <span className="font-bold text-lg tracking-tight text-white">Jinvexa<span className="text-emerald-500 font-normal">NIM</span></span>
           </div>
 
           <nav className="hidden lg:flex items-center gap-1 text-sm">
-            <button
-              onClick={() => setActiveTab("dashboard")}
-              className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "dashboard" ? "text-blue-400 bg-blue-500/10" : "text-slate-300 hover:text-white"}`}
-            >
+            <button onClick={() => setActiveTab("dashboard")} className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "dashboard" ? "text-emerald-400 bg-emerald-500/10" : "text-slate-300 hover:text-white"}`}>
               My Learning
             </button>
-            <button
-              onClick={() => setActiveTab("discovery")}
-              className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "discovery" ? "text-blue-400 bg-blue-500/10" : "text-slate-300 hover:text-white"}`}
-            >
+            <button onClick={() => setActiveTab("discovery")} className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "discovery" ? "text-emerald-400 bg-emerald-500/10" : "text-slate-300 hover:text-white"}`}>
               Explore Specializations
             </button>
-            <button
-              onClick={() => setActiveTab("classroom")}
-              className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "classroom" ? "text-blue-400 bg-blue-500/10" : "text-slate-300 hover:text-white"}`}
-            >
+            <button onClick={() => setActiveTab("classroom")} className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "classroom" ? "text-emerald-400 bg-emerald-500/10" : "text-slate-300 hover:text-white"}`}>
               Classroom
             </button>
-            <button
-              onClick={() => setActiveTab("assessments")}
-              className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "assessments" ? "text-blue-400 bg-blue-500/10" : "text-slate-300 hover:text-white"}`}
-            >
+            <button onClick={() => setActiveTab("assessments")} className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "assessments" ? "text-emerald-400 bg-emerald-500/10" : "text-slate-300 hover:text-white"}`}>
               Graded Quizzes
             </button>
-            <button
-              onClick={() => setActiveTab("coach")}
-              className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "coach" ? "text-blue-400 bg-blue-500/10" : "text-slate-300 hover:text-white"}`}
-            >
+            <button onClick={() => setActiveTab("coach")} className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "coach" ? "text-emerald-400 bg-emerald-500/10" : "text-slate-300 hover:text-white"}`}>
               AI Coach
             </button>
             {currentUser.role === "admin" && (
-              <button
-                onClick={() => setActiveTab("admin")}
-                className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "admin" ? "text-purple-400 bg-purple-500/10" : "text-slate-300 hover:text-white"}`}
-              >
+              <button onClick={() => setActiveTab("admin")} className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "admin" ? "text-purple-400 bg-purple-500/10" : "text-slate-300 hover:text-white"}`}>
                 Admin Suite
               </button>
             )}
           </nav>
         </div>
 
-        {/* Global Search & User Profile */}
         <div className="flex items-center gap-4">
-          <div className="relative hidden md:block w-64">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
-            <input
-              type="text"
-              placeholder="Search courses, skills, videos..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-full pl-9 pr-4 py-1.5 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-blue-500"
-            />
-          </div>
-
           <div className="hidden sm:flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-full px-3 py-1 text-[11px] text-slate-300 font-mono">
-            <Cpu className="w-3 h-3 text-emerald-400" />
+            <Cpu className="w-3 h-3 text-emerald-400 animate-pulse" />
             <span>{activeModel}</span>
           </div>
-
           <div className="flex items-center gap-3 pl-3 border-l border-slate-800">
-            <div className="w-8 h-8 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs">
+            <div className="w-8 h-8 rounded-full bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-xs">
               {currentUser.username.charAt(0)}
             </div>
             <button onClick={() => setCurrentUser(null)} className="text-slate-400 hover:text-rose-400 transition" title="Sign Out">
@@ -340,62 +297,51 @@ export default function JinvexaCourseraUI() {
         </div>
       </header>
 
-      {/* 2. VIEWPORT CONTENT */}
       <main className="flex-1 overflow-y-auto">
-        {/* TAB 1: MY LEARNING DASHBOARD */}
+        {/* TAB 1: DASHBOARD */}
         {activeTab === "dashboard" && (
           <div className="max-w-6xl mx-auto p-8 space-y-8">
-            <div className="bg-gradient-to-r from-blue-900/40 via-slate-900 to-slate-900 border border-blue-500/20 rounded-2xl p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/20 rounded-2xl p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div className="space-y-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded border border-blue-500/20">
-                  Professional Degree Track
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20">
+                  NVIDIA AI Degree Track
                 </span>
                 <h1 className="text-3xl font-extrabold text-white">Welcome back, {currentUser.username}</h1>
                 <p className="text-sm text-slate-300 max-w-xl">
-                  You are making steady progress! You have completed 4 lessons this week. Keep up the momentum to earn your specialization certificate.
+                  You are making steady progress! Keep up the momentum to complete your specialized certification.
                 </p>
               </div>
-              <button
-                onClick={() => setActiveTab("discovery")}
-                className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition text-sm flex items-center gap-2 whitespace-nowrap"
-              >
+              <button onClick={() => setActiveTab("discovery")} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition text-sm flex items-center gap-2 whitespace-nowrap">
                 <Sparkles className="w-4 h-4" /> Build New AI Curriculum
               </button>
             </div>
 
-            {/* Active Courses Grid */}
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-blue-400" /> In Progress Courses
+                <BookOpen className="w-5 h-5 text-emerald-400" /> Active Specializations
               </h2>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col justify-between space-y-6 hover:border-slate-700 transition">
                   <div className="space-y-2">
                     <div className="flex justify-between items-center text-xs text-slate-400">
                       <span>Course 2 of 4 in Specialization</span>
-                      <span className="text-blue-400 font-semibold">In Progress</span>
+                      <span className="text-emerald-400 font-semibold">In Progress</span>
                     </div>
                     <h3 className="text-lg font-bold text-white">Generative AI & LLM Systems Engineering</h3>
-                    <p className="text-xs text-slate-400">Google Cloud & Jinvexa Autonomous University</p>
+                    <p className="text-xs text-slate-400">NVIDIA Deep Learning Institute & Jinvexa</p>
                   </div>
-
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs font-semibold">
                       <span className="text-slate-300">Overall Completion</span>
-                      <span className="text-blue-400">65%</span>
+                      <span className="text-emerald-400">65%</span>
                     </div>
                     <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                      <div className="w-[65%] h-full bg-blue-500 rounded-full" />
+                      <div className="w-[65%] h-full bg-emerald-500 rounded-full" />
                     </div>
                   </div>
-
                   <div className="pt-4 border-t border-slate-800/80 flex justify-between items-center">
                     <span className="text-xs text-slate-400">Next: Mathematical Foundations of Transformers</span>
-                    <button
-                      onClick={() => setActiveTab("classroom")}
-                      className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
-                    >
+                    <button onClick={() => setActiveTab("classroom")} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
                       Resume Lecture <Play className="w-3.5 h-3.5 fill-current" />
                     </button>
                   </div>
@@ -408,9 +354,8 @@ export default function JinvexaCourseraUI() {
                       <span className="text-amber-400 font-semibold">Assessment Due</span>
                     </div>
                     <h3 className="text-lg font-bold text-white">Full-Stack Next.js 14 & Cloud Architecture</h3>
-                    <p className="text-xs text-slate-400">Meta & Jinvexa Developer Network</p>
+                    <p className="text-xs text-slate-400">Jinvexa Developer Network</p>
                   </div>
-
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs font-semibold">
                       <span className="text-slate-300">Overall Completion</span>
@@ -420,13 +365,9 @@ export default function JinvexaCourseraUI() {
                       <div className="w-[90%] h-full bg-amber-500 rounded-full" />
                     </div>
                   </div>
-
                   <div className="pt-4 border-t border-slate-800/80 flex justify-between items-center">
                     <span className="text-xs text-slate-400">Next: Graded Quiz • 30 mins</span>
-                    <button
-                      onClick={() => setActiveTab("assessments")}
-                      className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
-                    >
+                    <button onClick={() => setActiveTab("assessments")} className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
                       Go to Quiz <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -436,18 +377,17 @@ export default function JinvexaCourseraUI() {
           </div>
         )}
 
-        {/* TAB 2: EXPLORE SPECIALIZATIONS (GOAL DISCOVERY) */}
+        {/* TAB 2: DISCOVERY */}
         {activeTab === "discovery" && (
           <div className="max-w-5xl mx-auto p-8 space-y-8">
             <div className="text-center max-w-2xl mx-auto space-y-3">
-              <span className="text-xs font-bold uppercase tracking-widest text-blue-400">Autonomous Degree Builder</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Autonomous Degree Builder</span>
               <h1 className="text-3xl font-extrabold text-white">What topic or career specialization do you want to master?</h1>
               <p className="text-sm text-slate-400">
-                Enter any career goal or technical subject. Our Google Gemma 4 AI will dynamically construct a multi-phase syllabus with custom audio lectures and graded rubrics.
+                Enter any career goal or technical subject. Our NVIDIA NIM AI will dynamically construct a multi-phase syllabus with custom audio lectures and graded rubrics.
               </p>
             </div>
 
-            {/* Coursera Search Studio Card */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl max-w-3xl mx-auto flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-500" />
@@ -456,32 +396,28 @@ export default function JinvexaCourseraUI() {
                   value={goalInput}
                   onChange={(e) => setGoalInput(e.target.value)}
                   placeholder="e.g., 'Master Artificial Intelligence and LLM Systems'"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:border-emerald-500"
                 />
               </div>
               <button
                 onClick={handleAnalyzeGoal}
                 disabled={isAnalyzing}
-                className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-3 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-md"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-8 py-3 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-md"
               >
                 {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 {isAnalyzing ? "Designing Curriculum..." : "Generate Specialization"}
               </button>
             </div>
 
-            {/* Generated Specialization Curriculum */}
             {generatedRoadmap.length > 0 && (
               <div className="space-y-6 pt-6 border-t border-slate-800 animate-in fade-in">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800">
                   <div>
-                    <span className="text-xs text-blue-400 font-bold uppercase tracking-wider">Professional Specialization</span>
-                    <h2 className="text-2xl font-bold text-white mt-1">{goalInput}</h2>
+                    <span className="text-xs text-emerald-400 font-bold uppercase tracking-wider">Professional Specialization</span>
+                    <h2 className="text-2xl font-bold text-white mt-1">{goalInput || "AI Engineering"}</h2>
                     <p className="text-xs text-slate-400 mt-1">4-Course Series • Earn a sharable Career Certificate upon completion</p>
                   </div>
-                  <button
-                    onClick={() => setActiveTab("classroom")}
-                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-2.5 rounded-xl text-xs transition shadow flex items-center gap-2"
-                  >
+                  <button onClick={() => setActiveTab("classroom")} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-2.5 rounded-xl text-xs transition shadow flex items-center gap-2">
                     Enroll in Specialization <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -493,7 +429,7 @@ export default function JinvexaCourseraUI() {
                       <div key={idx} className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                         <div className="space-y-2 flex-1">
                           <div className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs">
+                            <span className="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-xs">
                               {item.phase}
                             </span>
                             <h4 className="font-bold text-white text-base">{item.title}</h4>
@@ -511,10 +447,7 @@ export default function JinvexaCourseraUI() {
                           <span className="text-xs text-slate-400 font-mono flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5" /> {item.hours} hrs
                           </span>
-                          <button
-                            onClick={() => setActiveTab("classroom")}
-                            className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-xs font-semibold transition"
-                          >
+                          <button onClick={() => setActiveTab("classroom")} className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-xs font-semibold transition">
                             View Syllabus
                           </button>
                         </div>
@@ -527,10 +460,9 @@ export default function JinvexaCourseraUI() {
           </div>
         )}
 
-        {/* TAB 3: COURSERA CLASSROOM PLAYER (TEACHING LAYER) */}
+        {/* TAB 3: CLASSROOM */}
         {activeTab === "classroom" && (
           <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
-            {/* Left Course Syllabus Sidebar */}
             <aside className={`w-80 border-r border-slate-800 bg-slate-900 flex flex-col transition-all ${sidebarOpen ? "block" : "hidden"}`}>
               <div className="p-4 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
                 <div>
@@ -538,7 +470,6 @@ export default function JinvexaCourseraUI() {
                   <p className="text-sm font-bold text-white truncate w-56">{goalInput || "AI Systems Engineering"}</p>
                 </div>
               </div>
-
               <div className="flex-1 overflow-y-auto p-4 space-y-6">
                 {syllabus.map((mod, modIdx) => (
                   <div key={modIdx} className="space-y-2">
@@ -546,7 +477,6 @@ export default function JinvexaCourseraUI() {
                       <span>{mod.module}</span>
                     </div>
                     <p className="text-[10px] text-slate-500">{mod.duration}</p>
-
                     <div className="space-y-1 pt-1">
                       {mod.lessons.map((les, lesIdx) => {
                         const isCurrent = activeModule === modIdx && activeLesson === lesIdx;
@@ -555,13 +485,11 @@ export default function JinvexaCourseraUI() {
                             key={lesIdx}
                             onClick={() => { setActiveModule(modIdx); setActiveLesson(lesIdx); }}
                             className={`p-3 rounded-xl cursor-pointer transition flex items-start gap-3 border ${
-                              isCurrent
-                                ? "bg-blue-600/10 border-blue-500/40 text-white"
-                                : "bg-slate-950/40 border-transparent hover:bg-slate-800/50 text-slate-400"
+                              isCurrent ? "bg-emerald-600/10 border-emerald-500/40 text-white" : "bg-slate-950/40 border-transparent hover:bg-slate-800/50 text-slate-400"
                             }`}
                           >
                             <div className="mt-0.5">
-                              {les.type === "audio" ? <Volume2 className={`w-4 h-4 ${isCurrent ? "text-blue-400" : "text-slate-500"}`} /> : <FileText className={`w-4 h-4 ${isCurrent ? "text-blue-400" : "text-slate-500"}`} />}
+                              {les.type === "audio" ? <Volume2 className={`w-4 h-4 ${isCurrent ? "text-emerald-400" : "text-slate-500"}`} /> : <FileText className={`w-4 h-4 ${isCurrent ? "text-emerald-400" : "text-slate-500"}`} />}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-semibold truncate">{les.title}</p>
@@ -579,38 +507,31 @@ export default function JinvexaCourseraUI() {
               </div>
             </aside>
 
-            {/* Main Classroom Lecture Viewport */}
             <div className="flex-1 flex flex-col bg-slate-950 overflow-y-auto">
               <div className="p-6 max-w-4xl mx-auto w-full space-y-6">
-                {/* Lecture Breadcrumb */}
                 <div className="flex items-center gap-2 text-xs text-slate-400">
                   <span>Course 2</span> <ChevronRight className="w-3.5 h-3.5" />
                   <span>{syllabus[activeModule].module}</span> <ChevronRight className="w-3.5 h-3.5" />
-                  <span className="text-blue-400 font-semibold">{syllabus[activeModule].lessons[activeLesson].title}</span>
+                  <span className="text-emerald-400 font-semibold">{syllabus[activeModule].lessons[activeLesson].title}</span>
                 </div>
 
-                {/* Video / Audio Player Header */}
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                      <span className="text-[11px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-1 rounded">
+                      <span className="text-[11px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded">
                         {syllabus[activeModule].lessons[activeLesson].voice}
                       </span>
                       <h1 className="text-2xl font-extrabold text-white mt-2">
                         {syllabus[activeModule].lessons[activeLesson].title}
                       </h1>
                     </div>
-                    <button
-                      onClick={() => setActiveTab("assessments")}
-                      className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow"
-                    >
+                    <button onClick={() => setActiveTab("assessments")} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow">
                       Next: Graded Quiz <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
-                  {/* Audio Narration Controls */}
                   <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center gap-4">
-                    <button className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center shadow-lg transition flex-shrink-0">
+                    <button className="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shadow-lg transition flex-shrink-0">
                       <Play className="w-5 h-5 ml-0.5 fill-current" />
                     </button>
                     <div className="flex-1 space-y-1">
@@ -619,22 +540,21 @@ export default function JinvexaCourseraUI() {
                         <span className="text-slate-500 font-mono">03:45 / {syllabus[activeModule].lessons[activeLesson].duration}</span>
                       </div>
                       <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden cursor-pointer">
-                        <div className="w-1/3 h-full bg-blue-500 rounded-full" />
+                        <div className="w-1/3 h-full bg-emerald-500 rounded-full" />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Lecture Transcript & Markdown Body */}
                 <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-8 space-y-6">
                   <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-blue-400" /> Lesson Transcript & Notes
+                    <FileText className="w-4 h-4 text-emerald-400" /> Lesson Transcript & Notes
                   </h3>
                   <div className="prose prose-invert max-w-none text-sm text-slate-300 space-y-4 leading-relaxed">
                     <p>
                       In traditional software engineering, algorithms are explicitly programmed using deterministic conditional logic. However, as problem domains scale in complexity—such as natural language translation or vision recognition—the human ability to hand-code rules collapses.
                     </p>
-                    <div className="p-4 bg-slate-950 border-l-4 border-blue-500 rounded-r-xl text-xs text-slate-300 font-mono">
+                    <div className="p-4 bg-slate-950 border-l-4 border-emerald-500 rounded-r-xl text-xs text-slate-300 font-mono">
                       Attention(Q, K, V) = softmax( (Q * K^T) / sqrt(d_k) ) * V
                     </div>
                     <p>
@@ -647,7 +567,7 @@ export default function JinvexaCourseraUI() {
           </div>
         )}
 
-        {/* TAB 4: GRADED ASSIGNMENTS (COURSERA QUIZ UI) */}
+        {/* TAB 4: QUIZZES */}
         {activeTab === "assessments" && (
           <div className="max-w-4xl mx-auto p-8 space-y-8">
             <div className="border-b border-slate-800 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -660,22 +580,22 @@ export default function JinvexaCourseraUI() {
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-xs font-mono bg-slate-900 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-blue-400" /> Time Limit: 30 mins
+                  <Clock className="w-4 h-4 text-emerald-400" /> Time Limit: 30 mins
                 </span>
               </div>
             </div>
 
             {!assignmentData ? (
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center space-y-4">
-                <Award className="w-12 h-12 text-blue-400 mx-auto" />
+                <Award className="w-12 h-12 text-emerald-400 mx-auto" />
                 <h3 className="text-lg font-bold text-white">Ready to take the assessment?</h3>
                 <p className="text-xs text-slate-400 max-w-md mx-auto">
-                  This quiz consists of multiple-choice analytical questions and an open-ended essay prompt evaluated by our autonomous Gemma 4 grading engine.
+                  This quiz consists of multiple-choice analytical questions and an open-ended essay prompt evaluated autonomously by NVIDIA NIM.
                 </p>
                 <button
                   onClick={handleGenerateAssignment}
                   disabled={isLoadingAssignment}
-                  className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-3 rounded-xl transition text-sm inline-flex items-center gap-2 shadow-lg"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-8 py-3 rounded-xl transition text-sm inline-flex items-center gap-2 shadow-lg"
                 >
                   {isLoadingAssignment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                   {isLoadingAssignment ? "Compiling Quiz..." : "Start Graded Quiz"}
@@ -683,19 +603,18 @@ export default function JinvexaCourseraUI() {
               </div>
             ) : !evalResult ? (
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-8 shadow-xl">
-                {/* Question 1: MCQ */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Question 1 • Multiple Choice</span>
+                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Question 1 • Multiple Choice</span>
                     <span className="text-xs text-slate-500 font-mono">10 Points</span>
                   </div>
                   <p className="text-base font-semibold text-white">{assignmentData.mcq?.question}</p>
                   <div className="space-y-2.5 pt-2">
-                    {assignmentData.mcq?.options.map((opt: string, idx: number) => (
+                    {assignmentData.mcq?.options?.map((opt: string, idx: number) => (
                       <label
                         key={idx}
                         className={`flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer text-sm transition ${
-                          selectedMCQ === idx ? "bg-blue-600/10 border-blue-500 text-white" : "bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700"
+                          selectedMCQ === idx ? "bg-emerald-600/10 border-emerald-500 text-white" : "bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700"
                         }`}
                       >
                         <input
@@ -703,7 +622,7 @@ export default function JinvexaCourseraUI() {
                           name="mcq"
                           checked={selectedMCQ === idx}
                           onChange={() => setSelectedMCQ(idx)}
-                          className="w-4 h-4 text-blue-600 bg-slate-900 border-slate-700 focus:ring-0"
+                          className="w-4 h-4 text-emerald-600 bg-slate-900 border-slate-700 focus:ring-0"
                         />
                         {opt}
                       </label>
@@ -711,10 +630,9 @@ export default function JinvexaCourseraUI() {
                   </div>
                 </div>
 
-                {/* Question 2: Essay */}
                 <div className="space-y-4 pt-6 border-t border-slate-800">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Question 2 • Open Response</span>
+                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Question 2 • Open Response</span>
                     <span className="text-xs text-slate-500 font-mono">20 Points</span>
                   </div>
                   <p className="text-base font-semibold text-white">{assignmentData.essay?.question}</p>
@@ -723,7 +641,7 @@ export default function JinvexaCourseraUI() {
                     value={essayText}
                     onChange={(e) => setEssayText(e.target.value)}
                     placeholder="Provide a detailed, structured technical explanation..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-100 placeholder-slate-600 outline-none focus:border-blue-500 transition"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-100 placeholder-slate-600 outline-none focus:border-emerald-500 transition"
                   />
                 </div>
 
@@ -731,7 +649,7 @@ export default function JinvexaCourseraUI() {
                   <button
                     onClick={handleSubmitAssignment}
                     disabled={isEvaluating || selectedMCQ === null || !essayText.trim()}
-                    className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold px-8 py-3 rounded-xl transition text-sm flex items-center gap-2 shadow-lg"
+                    className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold px-8 py-3 rounded-xl transition text-sm flex items-center gap-2 shadow-lg"
                   >
                     {isEvaluating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                     {isEvaluating ? "AI Grading in Progress..." : "Submit Assessment"}
@@ -739,7 +657,6 @@ export default function JinvexaCourseraUI() {
                 </div>
               </div>
             ) : (
-              /* Quiz Results Card */
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6 shadow-xl animate-in zoom-in-95">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-slate-950 rounded-xl border border-slate-800">
                   <div className="flex items-center gap-4">
@@ -757,7 +674,7 @@ export default function JinvexaCourseraUI() {
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Gemma 4 Pedagogical Feedback</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">NVIDIA NIM Pedagogical Feedback</h4>
                   <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl text-sm text-slate-300 leading-relaxed">
                     {evalResult.feedback}
                   </div>
@@ -767,13 +684,13 @@ export default function JinvexaCourseraUI() {
           </div>
         )}
 
-        {/* TAB 5: AI LEARNING COACH (COURSERA COACH UI) */}
+        {/* TAB 5: COACH */}
         {activeTab === "coach" && (
           <div className="max-w-4xl mx-auto p-8 h-[calc(100vh-4rem)] flex flex-col">
             <div className="bg-slate-900 border border-slate-800 rounded-2xl flex-1 flex flex-col overflow-hidden shadow-2xl">
               <div className="p-4 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-600/20 border border-blue-500/30 rounded-lg text-blue-400 font-bold">
+                  <div className="p-2 bg-emerald-600/20 border border-emerald-500/30 rounded-lg text-emerald-400 font-bold">
                     <Brain className="w-5 h-5" />
                   </div>
                   <div>
@@ -782,21 +699,21 @@ export default function JinvexaCourseraUI() {
                   </div>
                 </div>
                 <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded">
-                  Gemma 4 Live
+                  NVIDIA NIM Live
                 </span>
               </div>
 
               <div className="flex-1 p-6 overflow-y-auto space-y-4">
                 {coachMessages.map((msg, idx) => (
                   <div key={idx} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-lg p-4 rounded-2xl text-xs leading-relaxed ${msg.sender === "user" ? "bg-blue-600 text-white rounded-br-none" : "bg-slate-950 border border-slate-800 text-slate-200 rounded-bl-none"}`}>
+                    <div className={`max-w-lg p-4 rounded-2xl text-xs leading-relaxed ${msg.sender === "user" ? "bg-emerald-600 text-white rounded-br-none" : "bg-slate-950 border border-slate-800 text-slate-200 rounded-bl-none"}`}>
                       {msg.text}
                     </div>
                   </div>
                 ))}
                 {isThinking && (
-                  <div className="flex items-center gap-2 text-xs text-blue-400 pl-2">
-                    <Loader2 className="w-4 h-4 animate-spin" /> AI Coach is reviewing your course transcript...
+                  <div className="flex items-center gap-2 text-xs text-emerald-400 pl-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> AI Coach is reviewing your coursework...
                   </div>
                 )}
               </div>
@@ -808,9 +725,9 @@ export default function JinvexaCourseraUI() {
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                   placeholder="Ask for lecture summaries, code debugging, or math explanations..."
-                  className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 outline-none focus:border-blue-500"
+                  className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 outline-none focus:border-emerald-500"
                 />
-                <button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-500 text-white px-5 rounded-xl transition flex items-center justify-center">
+                <button onClick={handleSendMessage} className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 rounded-xl transition flex items-center justify-center">
                   <Send className="w-4 h-4" />
                 </button>
               </div>
@@ -818,7 +735,7 @@ export default function JinvexaCourseraUI() {
           </div>
         )}
 
-        {/* TAB 6: ADMIN SUITE */}
+        {/* TAB 6: ADMIN */}
         {activeTab === "admin" && currentUser.role === "admin" && (
           <div className="max-w-5xl mx-auto p-8 space-y-8">
             <div>
@@ -832,8 +749,10 @@ export default function JinvexaCourseraUI() {
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">Active Cloud Reasoning Engine</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
-                  { id: "gemma4:31b-cloud (OpenRouter)", name: "Google Gemma 4 31B Cloud", desc: "Recommended • Free Tier" },
-                  { id: "llama-3.3-70b (Groq)", name: "Llama 3.3 70B Versatile", desc: "Ultra-Fast Inference" },
+                  { id: "nvidia/nemotron-3-super (NIM Cloud)", name: "NVIDIA Nemotron 3 Super", desc: "NVIDIA NIM Free Endpoint • Flagship Reasoning" },
+                  { id: "meta/llama-3.3-70b-instruct (NIM Cloud)", name: "Llama 3.3 70B Instruct", desc: "NVIDIA NIM Free Endpoint • Fast & Reliable" },
+                  { id: "z-ai/glm-5.2 (NIM Cloud)", name: "GLM 5.2 Agentic LLM", desc: "NVIDIA NIM Free Endpoint • Coding & Agentic Tasks" },
+                  { id: "google/gemma-4-31b-it:free (OpenRouter)", name: "Google Gemma 4 31B Cloud", desc: "OpenRouter Backup Endpoint" },
                 ].map((m) => (
                   <button
                     key={m.id}
