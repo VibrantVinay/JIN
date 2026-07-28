@@ -11,7 +11,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const systemPrompt = `You are Jinvexa Learning Coach, an expert AI pedagogical tutor powered by NVIDIA NIM reasoning models.
+    const systemPrompt = `You are Jinvexa Learning Coach, an expert AI pedagogical tutor powered by NVIDIA NIM cloud reasoning.
     The student is currently studying: "${activeCourse || "AI Systems & Technology"}".
     Provide clear, encouraging, highly structured technical explanations. Use formatting and concise code/math examples where appropriate.`;
 
@@ -23,6 +23,7 @@ export async function POST(req: Request) {
       })),
     ];
 
+    // NVIDIA NIM Cloud API Endpoint
     const res = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "nvidia/nemotron-3-super",
+        model: "meta/llama-3.3-70b-instruct", // Fixed guaranteed live NVIDIA NIM chat model
         messages: formattedMessages,
         temperature: 0.5,
         max_tokens: 1000,
@@ -45,7 +46,6 @@ export async function POST(req: Request) {
 
     const data = await res.json();
     
-    // Safely check if choices exist to prevent reading '0' of undefined
     if (data && data.choices && data.choices.length > 0 && data.choices[0].message) {
       return NextResponse.json({ response: data.choices[0].message.content });
     } else {
