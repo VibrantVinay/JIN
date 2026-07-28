@@ -74,7 +74,7 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "nvidia/nemotron-3-super", // High-reasoning NVIDIA model
+        model: "meta/llama-3.3-70b-instruct", // High-reasoning NVIDIA model
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Create a professional 3-phase specialization for: ${goal}` }
