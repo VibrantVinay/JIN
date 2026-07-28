@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import {
   Brain,
-  Compass,
+  Search,
   BookOpen,
   CheckCircle2,
   MessageSquare,
@@ -19,16 +19,22 @@ import {
   Send,
   Lock,
   UserCheck,
-  Database,
+  ChevronRight,
+  ChevronDown,
   Layers,
   ArrowRight,
   Clock,
   Zap,
   Loader2,
+  GraduationCap,
+  LayoutDashboard,
+  HelpCircle,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 
 type Role = "user" | "admin";
-type Tab = "discovery" | "reference" | "teaching" | "assignments" | "mentoring" | "stats" | "admin";
+type Tab = "dashboard" | "discovery" | "classroom" | "assessments" | "coach" | "admin";
 
 interface User {
   username: string;
@@ -36,30 +42,39 @@ interface User {
   id: string;
 }
 
-export default function JinvexaApp() {
+export default function JinvexaCourseraUI() {
+  // Auth State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [authError, setAuthError] = useState("");
 
-  const [activeTab, setActiveTab] = useState<Tab>("discovery");
-  const [activeModel, setActiveModel] = useState("gemma4:31b-cloud (Live)");
+  // Navigation & Layout
+  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const [activeModel, setActiveModel] = useState("gemma4:31b-cloud (OpenRouter)");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Goal Discovery State
+  // Goal Discovery (Specialization Builder)
   const [goalInput, setGoalInput] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [diagnosticQ, setDiagnosticQ] = useState<any>(null);
   const [generatedRoadmap, setGeneratedRoadmap] = useState<any[]>([]);
 
-  // Mentor Chat State
-  const [mentorMessages, setMentorMessages] = useState([
-    { sender: "mentor", text: "Hello! I am Jinvexa AI Mentor. What would you like to master today?" },
+  // Classroom State
+  const [activeModule, setActiveModule] = useState(0);
+  const [activeLesson, setActiveLesson] = useState(0);
+
+  // AI Coach State
+  const [coachMessages, setCoachMessages] = useState([
+    {
+      sender: "coach",
+      text: "Hello! I am your Jinvexa AI Learning Coach powered by Google Gemma 4. How can I assist with your coursework today?",
+    },
   ]);
   const [chatInput, setChatInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
 
-  // Assignment State
-  const [activeTopic, setActiveTopic] = useState("AI Systems Engineering");
+  // Graded Assessment State
+  const [activeQuizTopic, setActiveQuizTopic] = useState("Transformer Architectures & Attention");
   const [assignmentData, setAssignmentData] = useState<any>(null);
   const [isLoadingAssignment, setIsLoadingAssignment] = useState(false);
   const [selectedMCQ, setSelectedMCQ] = useState<number | null>(null);
@@ -67,23 +82,24 @@ export default function JinvexaApp() {
   const [evalResult, setEvalResult] = useState<any>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
 
+  // Mock Login Handler
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (loginUsername === "admin" && loginPassword === "admin123") {
-      setCurrentUser({ username: "admin", role: "admin", id: "1" });
+      setCurrentUser({ username: "Admin Console", role: "admin", id: "1" });
       setAuthError("");
     } else if (loginUsername === "alice" && loginPassword === "alice123") {
-      setCurrentUser({ username: "alice", role: "user", id: "2" });
+      setCurrentUser({ username: "Alice Smith", role: "user", id: "2" });
       setAuthError("");
     } else if (loginUsername && loginPassword) {
       setCurrentUser({ username: loginUsername, role: "user", id: "3" });
       setAuthError("");
     } else {
-      setAuthError("Invalid credentials. Try admin/admin123 or alice/alice123");
+      setAuthError("Please enter valid credentials (e.g., alice / alice123)");
     }
   };
 
-  // Real AI Goal Discovery Call
+  // Live AI Goal Discovery Call (Gemma 4 31B via OpenRouter)
   const handleAnalyzeGoal = async () => {
     if (!goalInput.trim()) return;
     setIsAnalyzing(true);
@@ -96,9 +112,7 @@ export default function JinvexaApp() {
       const data = await res.json();
       if (data.roadmap) {
         setGeneratedRoadmap(data.roadmap);
-      }
-      if (data.question) {
-        setDiagnosticQ(data);
+        setActiveTab("discovery");
       }
     } catch (e) {
       console.error(e);
@@ -107,11 +121,11 @@ export default function JinvexaApp() {
     }
   };
 
-  // Real AI Mentor Chat Call
+  // Live AI Coach Chat Call
   const handleSendMessage = async () => {
     if (!chatInput.trim() || isThinking) return;
-    const newMsgs = [...mentorMessages, { sender: "user", text: chatInput }];
-    setMentorMessages(newMsgs);
+    const newMsgs = [...coachMessages, { sender: "user", text: chatInput }];
+    setCoachMessages(newMsgs);
     setChatInput("");
     setIsThinking(true);
 
@@ -119,18 +133,18 @@ export default function JinvexaApp() {
       const res = await fetch("/api/mentor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMsgs, activeCourse: goalInput }),
+        body: JSON.stringify({ messages: newMsgs, activeCourse: goalInput || "AI Engineering" }),
       });
       const data = await res.json();
-      setMentorMessages([...newMsgs, { sender: "mentor", text: data.response }]);
+      setCoachMessages([...newMsgs, { sender: "coach", text: data.response }]);
     } catch (e) {
-      setMentorMessages([...newMsgs, { sender: "mentor", text: "Error connecting to AI Reasoning Engine." }]);
+      setCoachMessages([...newMsgs, { sender: "coach", text: "⚠️ Unable to reach Gemma 4 reasoning engine." }]);
     } finally {
       setIsThinking(false);
     }
   };
 
-  // Real AI Assignment Generation & Evaluation
+  // Live AI Quiz Generation & Grading
   const handleGenerateAssignment = async () => {
     setIsLoadingAssignment(true);
     setEvalResult(null);
@@ -138,7 +152,7 @@ export default function JinvexaApp() {
       const res = await fetch("/api/assignment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "generate", topic: activeTopic }),
+        body: JSON.stringify({ action: "generate", topic: activeQuizTopic }),
       });
       const data = await res.json();
       setAssignmentData(data);
@@ -158,7 +172,7 @@ export default function JinvexaApp() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "evaluate",
-          topic: activeTopic,
+          topic: activeQuizTopic,
           userAnswers: { mcq: selectedMCQ, essay: essayText },
         }),
       });
@@ -171,285 +185,675 @@ export default function JinvexaApp() {
     }
   };
 
+  // Mock Course Curriculum Structure for Classroom Player
+  const syllabus = [
+    {
+      module: "Module 1: Foundations of Large Language Models",
+      duration: "3 hours to complete",
+      lessons: [
+        { title: "The Scaling Gap in Traditional AI", type: "audio", voice: "Warm Female Audio", duration: "12m" },
+        { title: "Mathematical Foundations of Transformers", type: "text", voice: "Self-Paced Reading", duration: "25m" },
+        { title: "Self-Attention vs. Multi-Head Attention", type: "audio", voice: "Professional Male Audio", duration: "18m" },
+      ],
+    },
+    {
+      module: "Module 2: Advanced Fine-Tuning & Quantization",
+      duration: "4 hours to complete",
+      lessons: [
+        { title: "Low-Rank Adaptation (LoRA) Principles", type: "text", voice: "Self-Paced Reading", duration: "30m" },
+        { title: "RLHF: Reinforcement Learning from Human Feedback", type: "audio", voice: "Professional Male Audio", duration: "22m" },
+      ],
+    },
+  ];
+
+  // --- LOGIN SCREEN ---
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4 relative overflow-hidden font-sans">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="w-full max-w-md bg-slate-900/80 border border-slate-800 backdrop-blur-xl rounded-2xl p-8 shadow-2xl relative z-10">
-          <div className="flex flex-col items-center mb-8 text-center">
-            <div className="p-3 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-xl shadow-lg mb-3">
-              <Brain className="w-10 h-10 text-white" />
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center p-4 font-sans">
+        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
+          <div className="flex flex-col items-center text-center space-y-2">
+            <div className="p-3 bg-blue-600 rounded-xl shadow-lg shadow-blue-600/30">
+              <GraduationCap className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
-              JINVEXA AI
-            </h1>
-            <p className="text-xs text-slate-400 mt-1">Autonomous AI Learning Platform</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Jinvexa Professional</h1>
+            <p className="text-xs text-slate-400">Enterprise AI Learning & Degree Platform</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Username</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Email or Username</label>
               <input
                 type="text"
                 value={loginUsername}
                 onChange={(e) => setLoginUsername(e.target.value)}
-                placeholder="admin or alice"
-                className="w-full bg-slate-950/60 border border-slate-800 focus:border-indigo-500 rounded-lg px-4 py-2.5 text-sm text-slate-100 outline-none"
+                placeholder="alice or admin"
+                className="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 outline-none transition"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Password</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Password</label>
               <input
                 type="password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-950/60 border border-slate-800 focus:border-indigo-500 rounded-lg px-4 py-2.5 text-sm text-slate-100 outline-none"
+                className="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-lg px-3.5 py-2.5 text-sm text-slate-100 outline-none transition"
               />
             </div>
-            {authError && <p className="text-xs text-rose-400 text-center">{authError}</p>}
+            {authError && <p className="text-xs text-rose-400 bg-rose-500/10 p-2.5 rounded-lg border border-rose-500/20 text-center">{authError}</p>}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold py-2.5 rounded-lg shadow-lg transition flex items-center justify-center gap-2 text-sm"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg shadow-md transition text-sm flex items-center justify-center gap-2"
             >
-              Sign In <ArrowRight className="w-4 h-4" />
+              Continue to My Learning <ArrowRight className="w-4 h-4" />
             </button>
           </form>
+
+          <div className="pt-4 border-t border-slate-800 text-[11px] text-slate-500 text-center space-y-1">
+            <p>Demo Learner: <span className="text-slate-300 font-mono">alice / alice123</span></p>
+            <p>Demo Administrator: <span className="text-slate-300 font-mono">admin / admin123</span></p>
+          </div>
         </div>
       </div>
     );
   }
 
+  // --- MAIN COURSERA-STYLE LMS LAYOUT ---
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      <header className="h-16 border-b border-slate-800 bg-slate-900/60 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg shadow-md">
-            <Brain className="w-5 h-5 text-white" />
+      {/* 1. COURSERA TOP NAVBAR */}
+      <header className="h-16 border-b border-slate-800 bg-slate-900/90 backdrop-blur px-6 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab("dashboard")}>
+            <div className="p-1.5 bg-blue-600 rounded-lg text-white font-bold shadow">
+              <GraduationCap className="w-5 h-5" />
+            </div>
+            <span className="font-bold text-lg tracking-tight text-white">Jinvexa<span className="text-blue-500 font-normal">Plus</span></span>
           </div>
-          <span className="font-extrabold text-lg tracking-wider bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-            JINVEXA AI
-          </span>
+
+          <nav className="hidden lg:flex items-center gap-1 text-sm">
+            <button
+              onClick={() => setActiveTab("dashboard")}
+              className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "dashboard" ? "text-blue-400 bg-blue-500/10" : "text-slate-300 hover:text-white"}`}
+            >
+              My Learning
+            </button>
+            <button
+              onClick={() => setActiveTab("discovery")}
+              className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "discovery" ? "text-blue-400 bg-blue-500/10" : "text-slate-300 hover:text-white"}`}
+            >
+              Explore Specializations
+            </button>
+            <button
+              onClick={() => setActiveTab("classroom")}
+              className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "classroom" ? "text-blue-400 bg-blue-500/10" : "text-slate-300 hover:text-white"}`}
+            >
+              Classroom
+            </button>
+            <button
+              onClick={() => setActiveTab("assessments")}
+              className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "assessments" ? "text-blue-400 bg-blue-500/10" : "text-slate-300 hover:text-white"}`}
+            >
+              Graded Quizzes
+            </button>
+            <button
+              onClick={() => setActiveTab("coach")}
+              className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "coach" ? "text-blue-400 bg-blue-500/10" : "text-slate-300 hover:text-white"}`}
+            >
+              AI Coach
+            </button>
+            {currentUser.role === "admin" && (
+              <button
+                onClick={() => setActiveTab("admin")}
+                className={`px-3 py-1.5 rounded-md font-medium transition ${activeTab === "admin" ? "text-purple-400 bg-purple-500/10" : "text-slate-300 hover:text-white"}`}
+              >
+                Admin Suite
+              </button>
+            )}
+          </nav>
         </div>
+
+        {/* Global Search & User Profile */}
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-full px-3 py-1 text-xs text-slate-300">
-            <Cpu className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span>Model: <strong className="text-indigo-400">{activeModel}</strong></span>
+          <div className="relative hidden md:block w-64">
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search courses, skills, videos..."
+              className="w-full bg-slate-950 border border-slate-800 rounded-full pl-9 pr-4 py-1.5 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-blue-500"
+            />
           </div>
-          <button onClick={() => setCurrentUser(null)} className="text-slate-400 hover:text-rose-400 transition" title="Logout">
-            <LogOut className="w-4 h-4" />
-          </button>
+
+          <div className="hidden sm:flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-full px-3 py-1 text-[11px] text-slate-300 font-mono">
+            <Cpu className="w-3 h-3 text-emerald-400" />
+            <span>{activeModel}</span>
+          </div>
+
+          <div className="flex items-center gap-3 pl-3 border-l border-slate-800">
+            <div className="w-8 h-8 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs">
+              {currentUser.username.charAt(0)}
+            </div>
+            <button onClick={() => setCurrentUser(null)} className="text-slate-400 hover:text-rose-400 transition" title="Sign Out">
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Navigation Sidebar */}
-        <aside className="w-64 border-r border-slate-800 bg-slate-900/40 p-4 flex flex-col justify-between hidden md:flex">
-          <nav className="space-y-2">
-            <button onClick={() => setActiveTab("discovery")} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium ${activeTab === "discovery" ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30" : "text-slate-400"}`}>
-              <Compass className="w-4 h-4" /> Goal Discovery
-            </button>
-            <button onClick={() => setActiveTab("teaching")} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium ${activeTab === "teaching" ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30" : "text-slate-400"}`}>
-              <BookOpen className="w-4 h-4" /> Teaching Layer
-            </button>
-            <button onClick={() => setActiveTab("assignments")} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium ${activeTab === "assignments" ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30" : "text-slate-400"}`}>
-              <CheckCircle2 className="w-4 h-4" /> AI Assignments
-            </button>
-            <button onClick={() => setActiveTab("mentoring")} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium ${activeTab === "mentoring" ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30" : "text-slate-400"}`}>
-              <MessageSquare className="w-4 h-4" /> AI Mentor Chat
-            </button>
-          </nav>
-        </aside>
-
-        {/* Viewport */}
-        <main className="flex-1 bg-slate-950 overflow-y-auto p-6">
-          {/* TAB 1: GOAL DISCOVERY */}
-          {activeTab === "discovery" && (
-            <div className="max-w-4xl mx-auto space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
-                  <Compass className="w-6 h-6 text-indigo-400" /> Goal Discovery Engine
-                </h2>
-                <p className="text-sm text-slate-400 mt-1">Enter your goal and let Jinvexa AI formulate a custom curriculum.</p>
+      {/* 2. VIEWPORT CONTENT */}
+      <main className="flex-1 overflow-y-auto">
+        {/* TAB 1: MY LEARNING DASHBOARD */}
+        {activeTab === "dashboard" && (
+          <div className="max-w-6xl mx-auto p-8 space-y-8">
+            <div className="bg-gradient-to-r from-blue-900/40 via-slate-900 to-slate-900 border border-blue-500/20 rounded-2xl p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="space-y-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded border border-blue-500/20">
+                  Professional Degree Track
+                </span>
+                <h1 className="text-3xl font-extrabold text-white">Welcome back, {currentUser.username}</h1>
+                <p className="text-sm text-slate-300 max-w-xl">
+                  You are making steady progress! You have completed 4 lessons this week. Keep up the momentum to earn your specialization certificate.
+                </p>
               </div>
+              <button
+                onClick={() => setActiveTab("discovery")}
+                className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transition text-sm flex items-center gap-2 whitespace-nowrap"
+              >
+                <Sparkles className="w-4 h-4" /> Build New AI Curriculum
+              </button>
+            </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">Target Goal</label>
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    value={goalInput}
-                    onChange={(e) => setGoalInput(e.target.value)}
-                    placeholder="e.g., 'Master Generative AI and LLM Engineering'"
-                    className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 outline-none"
-                  />
-                  <button
-                    onClick={handleAnalyzeGoal}
-                    disabled={isAnalyzing}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-3 rounded-xl transition flex items-center gap-2 text-sm"
-                  >
-                    {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                    {isAnalyzing ? "AI Reasoning..." : "Generate Roadmap"}
-                  </button>
+            {/* Active Courses Grid */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-blue-400" /> In Progress Courses
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col justify-between space-y-6 hover:border-slate-700 transition">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs text-slate-400">
+                      <span>Course 2 of 4 in Specialization</span>
+                      <span className="text-blue-400 font-semibold">In Progress</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white">Generative AI & LLM Systems Engineering</h3>
+                    <p className="text-xs text-slate-400">Google Cloud & Jinvexa Autonomous University</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-semibold">
+                      <span className="text-slate-300">Overall Completion</span>
+                      <span className="text-blue-400">65%</span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-[65%] h-full bg-blue-500 rounded-full" />
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-800/80 flex justify-between items-center">
+                    <span className="text-xs text-slate-400">Next: Mathematical Foundations of Transformers</span>
+                    <button
+                      onClick={() => setActiveTab("classroom")}
+                      className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
+                    >
+                      Resume Lecture <Play className="w-3.5 h-3.5 fill-current" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col justify-between space-y-6 hover:border-slate-700 transition">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-xs text-slate-400">
+                      <span>Course 1 of 3 in Specialization</span>
+                      <span className="text-amber-400 font-semibold">Assessment Due</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white">Full-Stack Next.js 14 & Cloud Architecture</h3>
+                    <p className="text-xs text-slate-400">Meta & Jinvexa Developer Network</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-semibold">
+                      <span className="text-slate-300">Overall Completion</span>
+                      <span className="text-amber-400">90%</span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-[90%] h-full bg-amber-500 rounded-full" />
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-800/80 flex justify-between items-center">
+                    <span className="text-xs text-slate-400">Next: Graded Quiz • 30 mins</span>
+                    <button
+                      onClick={() => setActiveTab("assessments")}
+                      className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
+                    >
+                      Go to Quiz <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
 
-              {generatedRoadmap.length > 0 && (
-                <div className="space-y-4 animate-in fade-in duration-500">
-                  <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-amber-400" /> AI-Generated Roadmap
-                  </h3>
+        {/* TAB 2: EXPLORE SPECIALIZATIONS (GOAL DISCOVERY) */}
+        {activeTab === "discovery" && (
+          <div className="max-w-5xl mx-auto p-8 space-y-8">
+            <div className="text-center max-w-2xl mx-auto space-y-3">
+              <span className="text-xs font-bold uppercase tracking-widest text-blue-400">Autonomous Degree Builder</span>
+              <h1 className="text-3xl font-extrabold text-white">What topic or career specialization do you want to master?</h1>
+              <p className="text-sm text-slate-400">
+                Enter any career goal or technical subject. Our Google Gemma 4 AI will dynamically construct a multi-phase syllabus with custom audio lectures and graded rubrics.
+              </p>
+            </div>
+
+            {/* Coursera Search Studio Card */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl max-w-3xl mx-auto flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-500" />
+                <input
+                  type="text"
+                  value={goalInput}
+                  onChange={(e) => setGoalInput(e.target.value)}
+                  placeholder="e.g., 'Master Artificial Intelligence and LLM Systems'"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                />
+              </div>
+              <button
+                onClick={handleAnalyzeGoal}
+                disabled={isAnalyzing}
+                className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-3 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-md"
+              >
+                {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                {isAnalyzing ? "Designing Curriculum..." : "Generate Specialization"}
+              </button>
+            </div>
+
+            {/* Generated Specialization Curriculum */}
+            {generatedRoadmap.length > 0 && (
+              <div className="space-y-6 pt-6 border-t border-slate-800 animate-in fade-in">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                  <div>
+                    <span className="text-xs text-blue-400 font-bold uppercase tracking-wider">Professional Specialization</span>
+                    <h2 className="text-2xl font-bold text-white mt-1">{goalInput}</h2>
+                    <p className="text-xs text-slate-400 mt-1">4-Course Series • Earn a sharable Career Certificate upon completion</p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab("classroom")}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-2.5 rounded-xl text-xs transition shadow flex items-center gap-2"
+                  >
+                    Enroll in Specialization <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider">Courses in this Specialization</h3>
                   <div className="grid gap-4">
                     {generatedRoadmap.map((item, idx) => (
-                      <div key={idx} className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-                        <div className="flex justify-between items-center mb-2">
-                          <h4 className="font-semibold text-slate-200 text-sm">Phase {item.phase}: {item.title}</h4>
-                          <span className="text-xs text-slate-400 font-mono">{item.hours} hours</span>
-                        </div>
-                        <p className="text-xs text-slate-400 mb-3">{item.description}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {item.topics?.map((tp: string, i: number) => (
-                            <span key={i} className="text-[11px] bg-slate-950 text-slate-300 border border-slate-800 px-2.5 py-0.5 rounded-md">
-                              {tp}
+                      <div key={idx} className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div className="space-y-2 flex-1">
+                          <div className="flex items-center gap-3">
+                            <span className="w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs">
+                              {item.phase}
                             </span>
-                          ))}
+                            <h4 className="font-bold text-white text-base">{item.title}</h4>
+                          </div>
+                          <p className="text-xs text-slate-400 pl-9">{item.description}</p>
+                          <div className="flex flex-wrap gap-2 pl-9 pt-1">
+                            {item.topics?.map((tp: string, i: number) => (
+                              <span key={i} className="text-[11px] bg-slate-950 text-slate-300 border border-slate-800 px-2.5 py-0.5 rounded">
+                                {tp}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 border-t md:border-t-0 pt-4 md:pt-0 border-slate-800 w-full md:w-auto justify-between md:justify-end">
+                          <span className="text-xs text-slate-400 font-mono flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5" /> {item.hours} hrs
+                          </span>
+                          <button
+                            onClick={() => setActiveTab("classroom")}
+                            className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-xs font-semibold transition"
+                          >
+                            View Syllabus
+                          </button>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB 2: TEACHING LAYER */}
-          {activeTab === "teaching" && (
-            <div className="max-w-4xl mx-auto space-y-6">
-              <h2 className="text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-indigo-400" /> Teaching Layer & Course Player
-              </h2>
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                <h3 className="text-lg font-bold text-slate-100">Module: {goalInput || "AI Systems Overview"}</h3>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  Welcome to your customized lesson. This curriculum was autonomously structured by Jinvexa's concept extraction and dependency mapping agents.
-                </p>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+        )}
 
-          {/* TAB 3: ASSIGNMENTS */}
-          {activeTab === "assignments" && (
-            <div className="max-w-3xl mx-auto space-y-6">
-              <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-                <CheckCircle2 className="w-6 h-6 text-indigo-400" /> AI Assignment & Auto-Grading Engine
-              </h2>
-
-              {!assignmentData ? (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center space-y-4">
-                  <p className="text-sm text-slate-400">Generate a custom AI test based on your active learning goal.</p>
-                  <button
-                    onClick={handleGenerateAssignment}
-                    disabled={isLoadingAssignment}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-2.5 rounded-xl transition text-xs inline-flex items-center gap-2"
-                  >
-                    {isLoadingAssignment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                    {isLoadingAssignment ? "Generating Questions..." : "Generate AI Assignment"}
-                  </button>
+        {/* TAB 3: COURSERA CLASSROOM PLAYER (TEACHING LAYER) */}
+        {activeTab === "classroom" && (
+          <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+            {/* Left Course Syllabus Sidebar */}
+            <aside className={`w-80 border-r border-slate-800 bg-slate-900 flex flex-col transition-all ${sidebarOpen ? "block" : "hidden"}`}>
+              <div className="p-4 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Course Syllabus</h3>
+                  <p className="text-sm font-bold text-white truncate w-56">{goalInput || "AI Systems Engineering"}</p>
                 </div>
-              ) : !evalResult ? (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
-                  {/* MCQ */}
-                  <div className="space-y-3">
-                    <p className="text-sm font-semibold text-slate-200">1. {assignmentData.mcq?.question}</p>
-                    <div className="space-y-2">
-                      {assignmentData.mcq?.options.map((opt: string, idx: number) => (
-                        <label key={idx} className="flex items-center gap-3 p-3 bg-slate-950 border border-slate-800 rounded-xl cursor-pointer text-xs text-slate-300">
-                          <input type="radio" name="mcq" onChange={() => setSelectedMCQ(idx)} className="text-indigo-600" />
-                          {opt}
-                        </label>
-                      ))}
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                {syllabus.map((mod, modIdx) => (
+                  <div key={modIdx} className="space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-300">
+                      <span>{mod.module}</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500">{mod.duration}</p>
+
+                    <div className="space-y-1 pt-1">
+                      {mod.lessons.map((les, lesIdx) => {
+                        const isCurrent = activeModule === modIdx && activeLesson === lesIdx;
+                        return (
+                          <div
+                            key={lesIdx}
+                            onClick={() => { setActiveModule(modIdx); setActiveLesson(lesIdx); }}
+                            className={`p-3 rounded-xl cursor-pointer transition flex items-start gap-3 border ${
+                              isCurrent
+                                ? "bg-blue-600/10 border-blue-500/40 text-white"
+                                : "bg-slate-950/40 border-transparent hover:bg-slate-800/50 text-slate-400"
+                            }`}
+                          >
+                            <div className="mt-0.5">
+                              {les.type === "audio" ? <Volume2 className={`w-4 h-4 ${isCurrent ? "text-blue-400" : "text-slate-500"}`} /> : <FileText className={`w-4 h-4 ${isCurrent ? "text-blue-400" : "text-slate-500"}`} />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold truncate">{les.title}</p>
+                              <div className="flex justify-between items-center mt-1 text-[10px] text-slate-500">
+                                <span>{les.voice}</span>
+                                <span>{les.duration}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
+                ))}
+              </div>
+            </aside>
 
-                  {/* Essay */}
-                  <div className="space-y-3 pt-4 border-t border-slate-800">
-                    <p className="text-sm font-semibold text-slate-200">2. {assignmentData.essay?.question}</p>
-                    <textarea
-                      rows={4}
-                      value={essayText}
-                      onChange={(e) => setEssayText(e.target.value)}
-                      placeholder="Type your response for AI grading..."
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-100 outline-none"
-                    />
+            {/* Main Classroom Lecture Viewport */}
+            <div className="flex-1 flex flex-col bg-slate-950 overflow-y-auto">
+              <div className="p-6 max-w-4xl mx-auto w-full space-y-6">
+                {/* Lecture Breadcrumb */}
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <span>Course 2</span> <ChevronRight className="w-3.5 h-3.5" />
+                  <span>{syllabus[activeModule].module}</span> <ChevronRight className="w-3.5 h-3.5" />
+                  <span className="text-blue-400 font-semibold">{syllabus[activeModule].lessons[activeLesson].title}</span>
+                </div>
+
+                {/* Video / Audio Player Header */}
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                      <span className="text-[11px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-1 rounded">
+                        {syllabus[activeModule].lessons[activeLesson].voice}
+                      </span>
+                      <h1 className="text-2xl font-extrabold text-white mt-2">
+                        {syllabus[activeModule].lessons[activeLesson].title}
+                      </h1>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab("assessments")}
+                      className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow"
+                    >
+                      Next: Graded Quiz <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
 
+                  {/* Audio Narration Controls */}
+                  <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center gap-4">
+                    <button className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center shadow-lg transition flex-shrink-0">
+                      <Play className="w-5 h-5 ml-0.5 fill-current" />
+                    </button>
+                    <div className="flex-1 space-y-1">
+                      <div className="flex justify-between text-xs text-slate-300 font-medium">
+                        <span>AI Lecture Narration ({activeModel})</span>
+                        <span className="text-slate-500 font-mono">03:45 / {syllabus[activeModule].lessons[activeLesson].duration}</span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden cursor-pointer">
+                        <div className="w-1/3 h-full bg-blue-500 rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lecture Transcript & Markdown Body */}
+                <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-8 space-y-6">
+                  <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-blue-400" /> Lesson Transcript & Notes
+                  </h3>
+                  <div className="prose prose-invert max-w-none text-sm text-slate-300 space-y-4 leading-relaxed">
+                    <p>
+                      In traditional software engineering, algorithms are explicitly programmed using deterministic conditional logic. However, as problem domains scale in complexity—such as natural language translation or vision recognition—the human ability to hand-code rules collapses.
+                    </p>
+                    <div className="p-4 bg-slate-950 border-l-4 border-blue-500 rounded-r-xl text-xs text-slate-300 font-mono">
+                      Attention(Q, K, V) = softmax( (Q * K^T) / sqrt(d_k) ) * V
+                    </div>
+                    <p>
+                      This equation represents the scaled dot-product attention. By computing the dot product between query (Q) and key (K) matrices, the model dynamically assigns importance weights to every token in the context window regardless of positional distance.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: GRADED ASSIGNMENTS (COURSERA QUIZ UI) */}
+        {activeTab === "assessments" && (
+          <div className="max-w-4xl mx-auto p-8 space-y-8">
+            <div className="border-b border-slate-800 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/20">
+                  Graded Assessment
+                </span>
+                <h1 className="text-2xl font-bold text-white mt-2">Module 1 Quiz: Transformer Architectures</h1>
+                <p className="text-xs text-slate-400 mt-1">Submit your responses to receive an immediate AI pedagogical evaluation and grade breakdown.</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-xs font-mono bg-slate-900 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-blue-400" /> Time Limit: 30 mins
+                </span>
+              </div>
+            </div>
+
+            {!assignmentData ? (
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center space-y-4">
+                <Award className="w-12 h-12 text-blue-400 mx-auto" />
+                <h3 className="text-lg font-bold text-white">Ready to take the assessment?</h3>
+                <p className="text-xs text-slate-400 max-w-md mx-auto">
+                  This quiz consists of multiple-choice analytical questions and an open-ended essay prompt evaluated by our autonomous Gemma 4 grading engine.
+                </p>
+                <button
+                  onClick={handleGenerateAssignment}
+                  disabled={isLoadingAssignment}
+                  className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-3 rounded-xl transition text-sm inline-flex items-center gap-2 shadow-lg"
+                >
+                  {isLoadingAssignment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  {isLoadingAssignment ? "Compiling Quiz..." : "Start Graded Quiz"}
+                </button>
+              </div>
+            ) : !evalResult ? (
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-8 shadow-xl">
+                {/* Question 1: MCQ */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Question 1 • Multiple Choice</span>
+                    <span className="text-xs text-slate-500 font-mono">10 Points</span>
+                  </div>
+                  <p className="text-base font-semibold text-white">{assignmentData.mcq?.question}</p>
+                  <div className="space-y-2.5 pt-2">
+                    {assignmentData.mcq?.options.map((opt: string, idx: number) => (
+                      <label
+                        key={idx}
+                        className={`flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer text-sm transition ${
+                          selectedMCQ === idx ? "bg-blue-600/10 border-blue-500 text-white" : "bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="mcq"
+                          checked={selectedMCQ === idx}
+                          onChange={() => setSelectedMCQ(idx)}
+                          className="w-4 h-4 text-blue-600 bg-slate-900 border-slate-700 focus:ring-0"
+                        />
+                        {opt}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Question 2: Essay */}
+                <div className="space-y-4 pt-6 border-t border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Question 2 • Open Response</span>
+                    <span className="text-xs text-slate-500 font-mono">20 Points</span>
+                  </div>
+                  <p className="text-base font-semibold text-white">{assignmentData.essay?.question}</p>
+                  <textarea
+                    rows={5}
+                    value={essayText}
+                    onChange={(e) => setEssayText(e.target.value)}
+                    placeholder="Provide a detailed, structured technical explanation..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-slate-100 placeholder-slate-600 outline-none focus:border-blue-500 transition"
+                  />
+                </div>
+
+                <div className="pt-4 flex justify-end">
                   <button
                     onClick={handleSubmitAssignment}
-                    disabled={isEvaluating}
-                    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition text-xs flex items-center justify-center gap-2"
+                    disabled={isEvaluating || selectedMCQ === null || !essayText.trim()}
+                    className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold px-8 py-3 rounded-xl transition text-sm flex items-center gap-2 shadow-lg"
                   >
-                    {isEvaluating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit for AI Evaluation"}
+                    {isEvaluating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                    {isEvaluating ? "AI Grading in Progress..." : "Submit Assessment"}
                   </button>
                 </div>
-              ) : (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                  <div className="text-center space-y-1">
-                    <Award className="w-10 h-10 text-emerald-400 mx-auto" />
-                    <h3 className="text-2xl font-bold text-slate-100">Grade: {evalResult.grade} ({evalResult.score}%)</h3>
+              </div>
+            ) : (
+              /* Quiz Results Card */
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6 shadow-xl animate-in zoom-in-95">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-slate-950 rounded-xl border border-slate-800">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-400">
+                      <Award className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">Assessment Passed</span>
+                      <h3 className="text-2xl font-extrabold text-white mt-0.5">Grade: {evalResult.grade} ({evalResult.score}%)</h3>
+                    </div>
                   </div>
-                  <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl text-xs text-slate-300 space-y-1">
-                    <p className="font-bold text-indigo-400">🤖 AI Feedback:</p>
-                    <p>{evalResult.feedback}</p>
-                  </div>
-                  <button onClick={() => setAssignmentData(null)} className="w-full bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-xs text-slate-200">
-                    Take New Test
+                  <button onClick={() => setAssignmentData(null)} className="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2.5 rounded-xl text-xs font-semibold transition">
+                    Retake Quiz
                   </button>
                 </div>
-              )}
-            </div>
-          )}
 
-          {/* TAB 4: MENTOR CHAT */}
-          {activeTab === "mentoring" && (
-            <div className="max-w-4xl mx-auto h-[calc(100vh-8rem)] flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-              <div className="p-4 border-b border-slate-800 bg-slate-950">
-                <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                  <Brain className="w-4 h-4 text-indigo-400" /> Jinvexa AI Mentor (Live Inference)
-                </h3>
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Gemma 4 Pedagogical Feedback</h4>
+                  <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl text-sm text-slate-300 leading-relaxed">
+                    {evalResult.feedback}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 5: AI LEARNING COACH (COURSERA COACH UI) */}
+        {activeTab === "coach" && (
+          <div className="max-w-4xl mx-auto p-8 h-[calc(100vh-4rem)] flex flex-col">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl flex-1 flex flex-col overflow-hidden shadow-2xl">
+              <div className="p-4 border-b border-slate-800 bg-slate-950 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-600/20 border border-blue-500/30 rounded-lg text-blue-400 font-bold">
+                    <Brain className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Jinvexa AI Learning Coach</h3>
+                    <p className="text-[10px] text-slate-400">Trained on your active syllabus & degree curriculum</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded">
+                  Gemma 4 Live
+                </span>
               </div>
 
-              <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                {mentorMessages.map((msg, idx) => (
+              <div className="flex-1 p-6 overflow-y-auto space-y-4">
+                {coachMessages.map((msg, idx) => (
                   <div key={idx} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-md p-3.5 rounded-2xl text-xs leading-relaxed ${msg.sender === "user" ? "bg-indigo-600 text-white" : "bg-slate-950 border border-slate-800 text-slate-200"}`}>
+                    <div className={`max-w-lg p-4 rounded-2xl text-xs leading-relaxed ${msg.sender === "user" ? "bg-blue-600 text-white rounded-br-none" : "bg-slate-950 border border-slate-800 text-slate-200 rounded-bl-none"}`}>
                       {msg.text}
                     </div>
                   </div>
                 ))}
                 {isThinking && (
-                  <div className="flex items-center gap-2 text-xs text-indigo-400">
-                    <Loader2 className="w-4 h-4 animate-spin" /> AI Mentor is reasoning...
+                  <div className="flex items-center gap-2 text-xs text-blue-400 pl-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> AI Coach is reviewing your course transcript...
                   </div>
                 )}
               </div>
 
-              <div className="p-4 border-t border-slate-800 bg-slate-950 flex gap-2">
+              <div className="p-4 border-t border-slate-800 bg-slate-950 flex gap-3">
                 <input
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                  placeholder="Ask a technical question..."
-                  className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 outline-none"
+                  placeholder="Ask for lecture summaries, code debugging, or math explanations..."
+                  className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 outline-none focus:border-blue-500"
                 />
-                <button onClick={handleSendMessage} className="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl">
+                <button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-500 text-white px-5 rounded-xl transition flex items-center justify-center">
                   <Send className="w-4 h-4" />
                 </button>
               </div>
             </div>
-          )}
-        </main>
-      </div>
+          </div>
+        )}
+
+        {/* TAB 6: ADMIN SUITE */}
+        {activeTab === "admin" && currentUser.role === "admin" && (
+          <div className="max-w-5xl mx-auto p-8 space-y-8">
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <ShieldCheck className="w-6 h-6 text-purple-400" /> Enterprise Admin Suite
+              </h1>
+              <p className="text-xs text-slate-400 mt-1">Manage cloud reasoning models, MongoDB database shards, and user enrollments.</p>
+            </div>
+
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Active Cloud Reasoning Engine</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { id: "gemma4:31b-cloud (OpenRouter)", name: "Google Gemma 4 31B Cloud", desc: "Recommended • Free Tier" },
+                  { id: "llama-3.3-70b (Groq)", name: "Llama 3.3 70B Versatile", desc: "Ultra-Fast Inference" },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setActiveModel(m.id)}
+                    className={`p-4 rounded-xl border text-left transition flex justify-between items-center ${
+                      activeModel === m.id ? "bg-purple-600/20 border-purple-500 text-purple-300" : "bg-slate-950 border-slate-800 text-slate-400"
+                    }`}
+                  >
+                    <div>
+                      <p className="text-xs font-bold text-white">{m.name}</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5">{m.desc}</p>
+                    </div>
+                    {activeModel === m.id && <CheckCircle2 className="w-4 h-4 text-purple-400" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
