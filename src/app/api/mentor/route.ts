@@ -3,17 +3,17 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const { messages, activeCourse } = await req.json();
-    const apiKey = process.env.OPENROUTER_API_KEY || process.env.GROQ_API_KEY;
+    const apiKey = process.env.NVIDIA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.GROQ_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json({
-        response: "⚠️ API key not configured in Vercel. Please set OPENROUTER_API_KEY in Vercel Environment Variables.",
+        response: "⚠️ NVIDIA API key is currently missing in Vercel settings. Please add your secret 'NVIDIA_API_KEY' in the Vercel Environment Variables tab to enable real-time inference.",
       });
     }
 
-    const systemPrompt = `You are Jinvexa Mentor, an encouraging, deeply intelligent technical tutor powered by Google Gemma 4 31B. 
-    Context: You are helping the student with their active learning journey: ${activeCourse || "General Technology & AI"}.
-    Be articulate, concise, structured, and use relevant technical examples.`;
+    const systemPrompt = `You are Jinvexa Learning Coach, an expert AI pedagogical tutor powered by NVIDIA NIM reasoning models.
+    The student is currently studying: "${activeCourse || "AI Systems & Technology"}".
+    Provide clear, encouraging, highly structured technical explanations. Use formatting and concise code/math examples where appropriate.`;
 
     const formattedMessages = [
       { role: "system", content: systemPrompt },
@@ -23,26 +23,36 @@ export async function POST(req: Request) {
       })),
     ];
 
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const res = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://jinvexa.vercel.app",
-        "X-Title": "Jinvexa Learning AI",
       },
       body: JSON.stringify({
-        model: "google/gemma-4-31b-it:free",
+        model: "nvidia/nemotron-3-super",
         messages: formattedMessages,
         temperature: 0.5,
+        max_tokens: 1000,
       }),
     });
 
-    const data = await res.json();
-    const reply = data.choices[0].message.content;
+    if (!res.ok) {
+      return NextResponse.json({
+        response: `⚠️ NVIDIA Reasoning Engine reported an issue (Status: ${res.status}). Please check your API key credits or try again in a moment.`,
+      });
+    }
 
-    return NextResponse.json({ response: reply });
+    const data = await res.json();
+    
+    // Safely check if choices exist to prevent reading '0' of undefined
+    if (data && data.choices && data.choices.length > 0 && data.choices[0].message) {
+      return NextResponse.json({ response: data.choices[0].message.content });
+    } else {
+      return NextResponse.json({ response: "I am ready to assist! Please ask your specific coursework question." });
+    }
   } catch (error: any) {
-    return NextResponse.json({ response: "Error generating mentor response: " + error.message });
+    console.error("Mentor Route Error:", error);
+    return NextResponse.json({ response: "I experienced a temporary network interruption. Please send your message again!" });
   }
 }
