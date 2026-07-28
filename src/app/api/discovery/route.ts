@@ -1,45 +1,61 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
+  let goal = "AI & Technology";
   try {
-    const { goal } = await req.json();
-    const apiKey = process.env.NVIDIA_API_KEY || process.env.OPENROUTER_API_KEY || process.env.GROQ_API_KEY;
+    const body = await req.json();
+    if (body?.goal) goal = body.goal;
 
-    // Bulletproof Fallback Curriculum in case API is missing or times out
+    const apiKey =
+      process.env.GROQ_API_KEY ||
+      process.env.NVIDIA_API_KEY ||
+      process.env.OPENROUTER_API_KEY;
+
+    // Fast local fallback roadmap if API key is missing or request times out
     const fallbackRoadmap = {
       roadmap: [
         {
           phase: 1,
-          title: "Foundations & Architectural Principles",
-          hours: 18,
-          topics: ["Core Theory", "Mathematical Syntax", "System Setup"],
-          description: `Comprehensive foundational dive into ${goal || "the target discipline"}.`
+          title: "Core Foundations & Theory",
+          hours: 15,
+          topics: ["Syntax Fundamentals", "Core Concepts", "Environment Setup"],
+          description: `Comprehensive foundational mastery of ${goal}.`,
         },
         {
           phase: 2,
-          title: "Advanced Engineering & Tooling",
-          hours: 22,
-          topics: ["Framework Integration", "Optimization", "Debugging"],
-          description: "Hands-on implementation using industry-standard enterprise tooling."
+          title: "Advanced Engineering & Frameworks",
+          hours: 25,
+          topics: [
+            "Architecture Design",
+            "API Integration",
+            "Performance Optimization",
+          ],
+          description:
+            "Hands-on implementation using industry-standard tooling and best practices.",
         },
         {
           phase: 3,
-          title: "Autonomous Capstone Deployment",
-          hours: 15,
-          topics: ["Production Build", "Testing", "Live Deployment"],
-          description: "End-to-end execution of a production-grade specialized project."
-        }
-      ]
+          title: "Production Capstone Deployment",
+          hours: 20,
+          topics: [
+            "Full System Build",
+            "Automated Testing",
+            "Cloud Deployment",
+          ],
+          description:
+            "End-to-end execution of a real-world autonomous production application.",
+        },
+      ],
     };
 
     if (!apiKey) {
       return NextResponse.json(fallbackRoadmap);
     }
 
-    const systemPrompt = `You are Jinvexa AI, an enterprise curriculum architect powered by NVIDIA Nemotron.
-    Analyze the user's career/learning goal: "${goal}".
+    const systemPrompt = `You are Jinvexa AI, an ultra-fast curriculum architect.
+    Analyze the goal: "${goal}".
     
-    Return STRICT JSON ONLY without any markdown code fences, commentary, or backticks:
+    Return STRICT JSON ONLY without markdown fences or backticks:
     {
       "roadmap": [
         {
@@ -66,44 +82,78 @@ export async function POST(req: Request) {
       ]
     }`;
 
-    // NVIDIA NIM Cloud API Endpoint
-    const res = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+    // 🚨 4-Second Timeout Safety Cutoff
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+    const apiUrl = process.env.GROQ_API_KEY
+      ? "https://api.groq.com/openai/v1/chat/completions"
+      : process.env.NVIDIA_API_KEY
+      ? "https://integrate.api.nvidia.com/v1/chat/completions"
+      : "https://openrouter.ai/api/v1/chat/completions";
+
+    const modelName = process.env.GROQ_API_KEY
+      ? "llama-3.1-8b-instant"
+      : process.env.NVIDIA_API_KEY
+      ? "meta/llama-3.3-70b-instruct"
+      : "google/gemma-4-31b-it:free";
+
+    const res = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
+      signal: controller.signal,
       body: JSON.stringify({
-        model: "meta/llama-3.3-70b-instruct", // High-reasoning NVIDIA model
+        model: modelName,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Create a professional 3-phase specialization for: ${goal}` }
+          {
+            role: "user",
+            content: `Create a professional 3-phase specialization for: ${goal}`,
+          },
         ],
         temperature: 0.3,
-        max_tokens: 1500,
+        max_tokens: 1200,
       }),
     });
 
-    if (!res.ok) {
-      console.warn("NVIDIA API returned status:", res.status);
-      return NextResponse.json(fallbackRoadmap);
-    }
+    clearTimeout(timeoutId);
+
+    if (!res.ok) return NextResponse.json(fallbackRoadmap);
 
     const data = await res.json();
-    if (!data.choices || !data.choices[0]?.message?.content) {
-      return NextResponse.json(fallbackRoadmap);
-    }
+    const rawContent = data?.choices?.[0]?.message?.content;
+    if (!rawContent) return NextResponse.json(fallbackRoadmap);
 
-    // Safely strip markdown formatting fences before parsing
-    const cleanJson = data.choices[0].message.content.replace(/```json|```/g, "").trim();
+    const cleanJson = rawContent.replace(/```json|```/g, "").trim();
     return NextResponse.json(JSON.parse(cleanJson));
   } catch (error: any) {
-    console.error("Discovery Route Error:", error);
     return NextResponse.json({
       roadmap: [
-        { phase: 1, title: "Core System Principles", hours: 16, topics: ["Theory", "Syntax"], description: "Initial curriculum module." },
-        { phase: 2, title: "Practical Application", hours: 20, topics: ["Execution", "Tooling"], description: "Advanced hands-on implementation." }
-      ]
+        {
+          phase: 1,
+          title: `Foundations of ${goal}`,
+          hours: 15,
+          topics: ["Core Theory", "Syntax Basics"],
+          description: "Primary introductory module.",
+        },
+        {
+          phase: 2,
+          title: "Advanced Practical Application",
+          hours: 22,
+          topics: ["System Architecture", "Tooling"],
+          description: "Deep-dive practical execution.",
+        },
+        {
+          phase: 3,
+          title: "Real-World Capstone",
+          hours: 18,
+          topics: ["Deployment", "Optimization"],
+          description: "Final portfolio build.",
+        },
+      ],
     });
   }
 }
