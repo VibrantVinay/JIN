@@ -46,7 +46,7 @@ export default function JinvexaCourseraUI() {
   const [authError, setAuthError] = useState("");
 
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
-  const [activeModel, setActiveModel] = useState("nvidia/nemotron-3-super (NIM Cloud)");
+  const [activeModel, setActiveModel] = useState("meta/llama-3.3-70b-instruct");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Discovery State
@@ -62,7 +62,7 @@ export default function JinvexaCourseraUI() {
   const [coachMessages, setCoachMessages] = useState([
     {
       sender: "coach",
-      text: "Hello! I am your Jinvexa AI Learning Coach powered by NVIDIA Nemotron. How can I assist with your coursework today?",
+      text: "Hello! I am your Jinvexa AI Learning Coach powered by llama-3.3-70b-instruct. How can I assist with your coursework today?",
     },
   ]);
   const [chatInput, setChatInput] = useState("");
