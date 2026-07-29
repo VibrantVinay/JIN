@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
+  // Declare default variables at the top scope so the catch block can safely access them!
+  let topic = "Enterprise Technical Track";
+  let lessonTitle = "Module Overview";
+
   try {
-    const { topic, lessonTitle } = await req.json();
+    const body = await req.json();
+    if (body?.topic) topic = body.topic;
+    if (body?.lessonTitle) lessonTitle = body.lessonTitle;
 
     const apiKey =
       process.env.GROQ_API_KEY ||
@@ -10,13 +16,13 @@ export async function POST(req: Request) {
       process.env.OPENROUTER_API_KEY;
 
     const fallbackLesson = {
-      content: `# Complete Study Guide: ${lessonTitle || "Module Overview"}
-**Specialization:** ${topic || "Enterprise Technical Track"}
+      content: `# Complete Study Guide: ${lessonTitle}
+**Specialization:** ${topic}
 
 ---
 
 ## 1. Deep Theoretical & Mathematical Foundations
-In professional engineering environments, mastering **${lessonTitle || "this topic"}** requires a rigorous understanding of its underlying mechanical and computational principles. Rather than relying on superficial abstractions, robust systems engineering examines how data structures, state transitions, and memory allocations behave under high-concurrency loads.
+In professional engineering environments, mastering **${lessonTitle}** requires a rigorous understanding of its underlying mechanical and computational principles. Rather than relying on superficial abstractions, robust systems engineering examines how data structures, state transitions, and memory allocations behave under high-concurrency loads.
 
 ### Key Architectural Constraints
 1. **Deterministic vs. Probabilistic Behavior:** Systems must be designed to handle both predictable input schemas and stochastic edge cases without dropping availability.
@@ -26,7 +32,7 @@ In professional engineering environments, mastering **${lessonTitle || "this top
 ---
 
 ## 2. Practical Syntax, Implementation & Code Workflows
-To implement **${lessonTitle || "this architecture"}** in production, engineers utilize standardized design patterns. Below is an architectural reference model demonstrating how components interact:
+To implement **${lessonTitle}** in production, engineers utilize standardized design patterns. Below is an architectural reference model demonstrating how components interact:
 
 \`\`\`text
 [Client Request] --> (API Gateway / Load Balancer)
@@ -47,7 +53,7 @@ To implement **${lessonTitle || "this architecture"}** in production, engineers 
 ---
 
 ## 3. Real-World Case Study & Production Verification
-Consider a high-frequency financial trading platform or an autonomous robotics control loop implementing **${lessonTitle || "these principles"}**. During peak market volatility or rapid sensor drift, the architecture must automatically scale horizontally while preserving strict sequential ordering.`,
+Consider a high-frequency financial trading platform or an autonomous robotics control loop implementing **${lessonTitle}**. During peak market volatility or rapid sensor drift, the architecture must automatically scale horizontally while preserving strict sequential ordering.`,
     };
 
     if (!apiKey) {
@@ -106,6 +112,7 @@ Consider a high-frequency financial trading platform or an autonomous robotics c
       content: content || fallbackLesson.content,
     });
   } catch (error) {
+    // Both topic and lessonTitle are now safely defined in the parent function scope!
     return NextResponse.json({
       content: `# Comprehensive Study Guide: ${lessonTitle}\n\nWelcome to your advanced lesson in **${topic}**.\n\n### 1. Architectural Foundations\nMastering this concept requires evaluating latency, throughput, and system reliability under load.\n\n### 2. Implementation Workflow\nAlways decouple state transformations from ingestion layers to ensure horizontal scalability.`,
     });
