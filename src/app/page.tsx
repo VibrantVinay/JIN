@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Brain,
   Search,
@@ -35,8 +35,22 @@ import {
   RotateCcw,
   Info,
   ExternalLink,
+  Pause,
+  RotateCw,
+  HelpCircle,
+  BookMarked,
+  Code,
+  Terminal,
+  FileCode,
+  ListChecks,
+  CheckSquare,
+  XCircle,
+  PlusCircle,
+  TrendingUp,
+  User,
 } from "lucide-react";
 
+// --- GLOBAL ENTERPRISE TYPES ---
 type Role = "user" | "admin";
 type Tab =
   | "dashboard"
@@ -54,33 +68,157 @@ interface User {
   id: string;
 }
 
-export default function JinvexaLMSApp() {
-  // Theme State: Light Mode default, Zen Mode optional
+interface LessonItem {
+  title: string;
+  type: "audio" | "text";
+  voice: string;
+  duration: string;
+  reason: string;
+  transcript?: string;
+  completed?: boolean;
+}
+
+interface ModuleItem {
+  phase: number;
+  title: string;
+  hours: number;
+  topics: string[];
+  description: string;
+  lessons?: LessonItem[];
+}
+
+interface SessionRecord {
+  id: string;
+  topic: string;
+  mode: "Goal-Based" | "Reference-Based";
+  created: string;
+  messages: number;
+  progress: string;
+  lessonsGenerated: number;
+  audioFiles: number;
+  textFiles: number;
+  status: string;
+  roadmap?: ModuleItem[];
+}
+
+interface QuizQuestionMCQ {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation?: string;
+}
+
+interface QuizQuestionEssay {
+  question: string;
+  rubric?: string;
+}
+
+interface QuizPayload {
+  mcq: QuizQuestionMCQ;
+  essay: QuizQuestionEssay;
+}
+
+export default function JinvexaEnterpriseLMS() {
+  // --- 1. THEME ENGINE STATE ---
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
 
-  // Auth State (Functionality #14: Login / Exit)
+  // --- 2. AUTHENTICATION STATE (#14) ---
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [authError, setAuthError] = useState("");
 
-  // Navigation & Active LLM (Functionality #12 & #13: Model Info & Change Model)
+  // --- 3. NAVIGATION & SYSTEM ARCHITECTURE (#12 & #13) ---
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
-  const [activeModel, setActiveModel] = useState("nvidia/nemotron-3-super");
+  const [activeModel, setActiveModel] = useState("meta/llama-3.3-70b-instruct");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Functionality #1 & #2: Goal-Based & Reference-Based Learning State
+  // --- 4. DYNAMIC LEARNING SESSIONS DATABASE (#9) ---
+  const [userSessions, setUserSessions] = useState<SessionRecord[]>([
+    {
+      id: "sess_1_20260729_ai_dev",
+      topic: "Generative AI & LLM Systems Engineering",
+      mode: "Goal-Based",
+      created: "2026-07-28 14:20",
+      messages: 14,
+      progress: "65%",
+      lessonsGenerated: 12,
+      audioFiles: 6,
+      textFiles: 6,
+      status: "Complete • Ready for Classroom",
+      roadmap: [
+        {
+          phase: 1,
+          title: "Foundations of Large Language Models",
+          hours: 15,
+          topics: [
+            "The Scaling Gap in Traditional AI",
+            "Mathematical Foundations of Transformers",
+            "Self-Attention vs. Multi-Head Attention",
+          ],
+          description: "Comprehensive introduction to LLM architecture and scaling limits.",
+        },
+        {
+          phase: 2,
+          title: "Advanced Fine-Tuning & Quantization",
+          hours: 20,
+          topics: [
+            "Low-Rank Adaptation (LoRA) Principles",
+            "RLHF: Reinforcement Learning from Human Feedback",
+            "Vector RAG Systems",
+          ],
+          description: "Deep technical dive into enterprise LLM optimization and tooling.",
+        },
+      ],
+    },
+    {
+      id: "sess_2_20260728_next_cloud",
+      topic: "Next.js 14 Full-Stack Cloud Architecture",
+      mode: "Reference-Based",
+      created: "2026-07-27 09:15",
+      messages: 8,
+      progress: "90%",
+      lessonsGenerated: 8,
+      audioFiles: 4,
+      textFiles: 4,
+      status: "Complete • Ready for Classroom",
+      roadmap: [
+        {
+          phase: 1,
+          title: "App Router & Server Actions",
+          hours: 12,
+          topics: [
+            "React Server Components",
+            "Client Component Boundary Optimization",
+            "Streaming UI Workflows",
+          ],
+          description: "Modern Next.js 14 architecture and data fetching patterns.",
+        },
+      ],
+    },
+  ]);
+
+  // --- 5. DISCOVERY ENGINE (#1 & #2) ---
   const [discoveryType, setDiscoveryType] = useState<"goal" | "reference">("goal");
   const [goalInput, setGoalInput] = useState("");
   const [referenceUrl, setReferenceUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [generatedRoadmap, setGeneratedRoadmap] = useState<any[]>([]);
+  const [activeCourseTitle, setActiveCourseTitle] = useState(
+    "Generative AI & LLM Systems Engineering"
+  );
+  const [generatedRoadmap, setGeneratedRoadmap] = useState<ModuleItem[]>(
+    userSessions[0].roadmap || []
+  );
 
-  // Functionality #3: Teaching Layer Classroom State
-  const [activeModule, setActiveModule] = useState(0);
-  const [activeLesson, setActiveLesson] = useState(0);
+  // --- 6. TEACHING LAYER CLASSROOM STATE (#3) ---
+  const [activeModuleIdx, setActiveModuleIdx] = useState(0);
+  const [activeLessonIdx, setActiveLessonIdx] = useState(0);
+  const [currentLessonText, setCurrentLessonText] = useState<string>("");
+  const [isLoadingLesson, setIsLoadingLesson] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [audioProgress, setAudioProgress] = useState(35);
 
-  // Functionality #5 & #6: Mentoring Layer & History State
+  // --- 7. MENTORING LAYER & COACH HISTORY (#5 & #6) ---
   const [mentorMode, setMentorMode] = useState<"session" | "full">("session");
   const [coachMessages, setCoachMessages] = useState([
     {
@@ -92,46 +230,31 @@ export default function JinvexaLMSApp() {
   const [isThinking, setIsThinking] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
-  // Functionality #4: Assignment Layer State
-  const [activeQuizTopic, setActiveQuizTopic] = useState("Transformer Architectures & Attention");
-  const [assignmentData, setAssignmentData] = useState<any>(null);
+  // --- 8. ASSIGNMENT LAYER & GRADED QUIZZES (#4) ---
+  const [assignmentData, setAssignmentData] = useState<QuizPayload | null>(null);
   const [isLoadingAssignment, setIsLoadingAssignment] = useState(false);
   const [selectedMCQ, setSelectedMCQ] = useState<number | null>(null);
   const [essayText, setEssayText] = useState("");
   const [evalResult, setEvalResult] = useState<any>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
+  const [userScores, setUserScores] = useState<number[]>([88, 92]);
 
-  // Functionality #9, #10, & #11: View Sessions, Continue Conversation, & Teaching Status
-  const [selectedSessionInspect, setSelectedSessionInspect] = useState<any | null>(null);
+  // --- 9. TEACHING STATUS INSPECTOR MODAL (#11) ---
+  const [selectedSessionInspect, setSelectedSessionInspect] =
+    useState<SessionRecord | null>(null);
 
-  // Mock Session Database
-  const mockSessions = [
-    {
-      id: "sess_1_20260729_ai_dev",
-      topic: "Generative AI & LLM Systems",
-      mode: "Goal-Based",
-      created: "2026-07-28 14:20",
-      messages: 12,
-      progress: "65%",
-      lessonsGenerated: 12,
-      audioFiles: 6,
-      textFiles: 6,
-      status: "Complete • Ready for Classroom",
-    },
-    {
-      id: "sess_2_20260728_next_cloud",
-      topic: "Next.js 14 Full-Stack Cloud",
-      mode: "Reference-Based",
-      created: "2026-07-27 09:15",
-      messages: 8,
-      progress: "90%",
-      lessonsGenerated: 8,
-      audioFiles: 4,
-      textFiles: 4,
-      status: "Complete • Ready for Classroom",
-    },
-  ];
+  // --- THEME UTILITY CLASSES ---
+  const isZen = themeMode === "zen";
+  const bgMain = isZen ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900";
+  const bgCard = isZen
+    ? "bg-slate-900/95 border-slate-800 text-slate-100"
+    : "bg-white border-slate-200 text-slate-900";
+  const bgInput = isZen
+    ? "bg-slate-950 border-slate-800 text-white"
+    : "bg-slate-50 border-slate-300 text-slate-900";
+  const textSub = isZen ? "text-slate-400" : "text-slate-500";
 
+  // --- AUTHENTICATION HANDLERS ---
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (loginUsername === "admin" && loginPassword === "admin123") {
@@ -148,7 +271,7 @@ export default function JinvexaLMSApp() {
     }
   };
 
-  // Live Discovery API Call (Handles both Goal #1 & Reference #2)
+  // --- DISCOVERY & SPECIALIZATION GENERATOR (#1 & #2) ---
   const handleAnalyzeDiscovery = async () => {
     const inputPayload = discoveryType === "goal" ? goalInput : referenceUrl;
     if (!inputPayload.trim()) return;
@@ -162,6 +285,24 @@ export default function JinvexaLMSApp() {
       const data = await res.json();
       if (data.roadmap) {
         setGeneratedRoadmap(data.roadmap);
+        setActiveCourseTitle(inputPayload);
+
+        // Dynamically add to user session logs
+        const newSessionRecord: SessionRecord = {
+          id: `sess_${Date.now()}`,
+          topic: inputPayload,
+          mode: discoveryType === "goal" ? "Goal-Based" : "Reference-Based",
+          created: new Date().toISOString().slice(0, 16).replace("T", " "),
+          messages: 1,
+          progress: "10%",
+          lessonsGenerated: data.roadmap.length * 3,
+          audioFiles: Math.ceil((data.roadmap.length * 3) / 2),
+          textFiles: Math.floor((data.roadmap.length * 3) / 2),
+          status: "Complete • Ready for Classroom",
+          roadmap: data.roadmap,
+        };
+        setUserSessions((prev) => [newSessionRecord, ...prev]);
+        setActiveTab("classroom");
       }
     } catch (e) {
       console.error("Discovery Error:", e);
@@ -170,7 +311,42 @@ export default function JinvexaLMSApp() {
     }
   };
 
-  // Live Mentor Chat API Call (Functionality #5)
+  // --- DYNAMIC CLASSROOM CONTENT GENERATOR (#3) ---
+  const fetchLessonContent = async (topicName: string, lessonTitle: string) => {
+    setIsLoadingLesson(true);
+    try {
+      const res = await fetch("/api/lesson", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: topicName, lessonTitle }),
+      });
+      const data = await res.json();
+      setCurrentLessonText(
+        data.content ||
+          `### ${lessonTitle}\n\nWelcome to **${lessonTitle}** in the **${topicName}** curriculum.\n\n#### Key Principles\n1. **Theoretical Foundations**: Understand the mathematical syntax and architectural constraints.\n2. **Practical Execution**: Implement robust code pipelines and test edge cases.\n3. **Performance Optimization**: Fine-tune latency and memory usage.`
+      );
+    } catch (e) {
+      setCurrentLessonText(
+        `### ${lessonTitle}\n\nWelcome to your dynamic lesson in **${topicName}**. Click any topic in the syllabus to generate custom AI pedagogical notes.`
+      );
+    } finally {
+      setIsLoadingLesson(false);
+    }
+  };
+
+  // Trigger lesson load on selection change
+  useEffect(() => {
+    if (generatedRoadmap.length > 0) {
+      const currentMod = generatedRoadmap[activeModuleIdx] || generatedRoadmap[0];
+      const currentLessonTitle =
+        currentMod?.topics?.[activeLessonIdx] || currentMod?.title;
+      if (currentLessonTitle) {
+        fetchLessonContent(activeCourseTitle, currentLessonTitle);
+      }
+    }
+  }, [activeModuleIdx, activeLessonIdx, generatedRoadmap, activeCourseTitle]);
+
+  // --- MENTOR CHAT INTERFACE (#5) ---
   const handleSendMessage = async () => {
     if (!chatInput.trim() || isThinking) return;
     const newMsgs = [...coachMessages, { sender: "user", text: chatInput }];
@@ -184,7 +360,7 @@ export default function JinvexaLMSApp() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: newMsgs,
-          activeCourse: goalInput || "AI Engineering",
+          activeCourse: activeCourseTitle,
           mode: mentorMode,
         }),
       });
@@ -203,7 +379,7 @@ export default function JinvexaLMSApp() {
     }
   };
 
-  // Live Assignment Generator & Evaluator (Functionality #4)
+  // --- GRADED ASSIGNMENT ENGINE (#4) ---
   const handleGenerateAssignment = async () => {
     setIsLoadingAssignment(true);
     setEvalResult(null);
@@ -211,7 +387,7 @@ export default function JinvexaLMSApp() {
       const res = await fetch("/api/assignment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "generate", topic: activeQuizTopic }),
+        body: JSON.stringify({ action: "generate", topic: activeCourseTitle }),
       });
       const data = await res.json();
       setAssignmentData(data);
@@ -231,12 +407,15 @@ export default function JinvexaLMSApp() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "evaluate",
-          topic: activeQuizTopic,
+          topic: activeCourseTitle,
           userAnswers: { mcq: selectedMCQ, essay: essayText },
         }),
       });
       const data = await res.json();
       setEvalResult(data);
+      if (data.score) {
+        setUserScores((prev) => [...prev, data.score]);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -244,95 +423,38 @@ export default function JinvexaLMSApp() {
     }
   };
 
-  // Functionality #10: Continue Conversation Handler
-  const handleContinueConversation = (sessionTopic: string) => {
+  // --- FUNCTIONALITY #10: CONTINUE CONVERSATION ---
+  const handleContinueConversation = (sessionTopic: string, sessionRoadmap?: ModuleItem[]) => {
+    setActiveCourseTitle(sessionTopic);
     setGoalInput(sessionTopic);
-    setActiveTab("discovery");
-    handleAnalyzeDiscovery();
+    if (sessionRoadmap && sessionRoadmap.length > 0) {
+      setGeneratedRoadmap(sessionRoadmap);
+    }
+    setActiveTab("classroom");
   };
 
-  const syllabus = [
-    {
-      module: "Module 1: Foundations of Large Language Models",
-      duration: "3 hours to complete",
-      lessons: [
-        {
-          title: "The Scaling Gap in Traditional AI",
-          type: "audio",
-          voice: "Warm Female Audio",
-          duration: "12m",
-          reason: "Introductory conceptual overview requiring an engaging tone.",
-        },
-        {
-          title: "Mathematical Foundations of Transformers",
-          type: "text",
-          voice: "Self-Paced Reading",
-          duration: "25m",
-          reason: "Formula-heavy content best suited for self-paced reading.",
-        },
-        {
-          title: "Self-Attention vs. Multi-Head Attention",
-          type: "audio",
-          voice: "Professional Male Audio",
-          duration: "18m",
-          reason: "Technical architecture best delivered with an authoritative tone.",
-        },
-      ],
-    },
-    {
-      module: "Module 2: Advanced Fine-Tuning & Quantization",
-      duration: "4 hours to complete",
-      lessons: [
-        {
-          title: "Low-Rank Adaptation (LoRA) Principles",
-          type: "text",
-          voice: "Self-Paced Reading",
-          duration: "30m",
-          reason: "Requires viewing side-by-side matrix rank code diagrams.",
-        },
-        {
-          title: "RLHF: Reinforcement Learning from Human Feedback",
-          type: "audio",
-          voice: "Professional Male Audio",
-          duration: "22m",
-          reason: "High-level industry workflow standard.",
-        },
-      ],
-    },
-  ];
-
-  // --- THEME UTILITY CLASSES ---
-  const isZen = themeMode === "zen";
-  const bgMain = isZen ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900";
-  const bgCard = isZen
-    ? "bg-slate-900/90 border-slate-800 text-slate-100"
-    : "bg-white border-slate-200 text-slate-900";
-  const bgInput = isZen
-    ? "bg-slate-950 border-slate-800 text-white"
-    : "bg-slate-50 border-slate-300 text-slate-900";
-
-  // --- LOGIN SCREEN ---
+  // --- 1. LIGHT MODE DEFAULT LOGIN SCREEN ---
   if (!currentUser) {
     return (
       <div className={`min-h-screen ${bgMain} flex flex-col justify-center items-center p-4 font-sans`}>
         <div className={`w-full max-w-md ${bgCard} border rounded-2xl p-8 shadow-xl space-y-6`}>
           <div className="flex flex-col items-center text-center space-y-2">
-            <div className="p-3 bg-violet-600 rounded-xl shadow-md shadow-violet-600/20">
-              <GraduationCap className="w-8 h-8 text-white" />
+            <div className="p-3 bg-violet-600 rounded-xl shadow-md text-white">
+              <GraduationCap className="w-8 h-8" />
             </div>
-            {/* BRANDING: Jin in black/white, vexa in violet */}
+            {/* BRANDING REQUIREMENT: Jin in black (white in zen), vexa in violet */}
             <h1 className="text-3xl font-extrabold tracking-tight">
               <span className={isZen ? "text-white" : "text-black"}>Jin</span>
               <span className="text-violet-600">vexa</span>
             </h1>
             <p className="text-xs font-medium text-slate-500">
-              Autonomous University & LMS Platform (14-in-1 Suite)
+              Autonomous University & Enterprise LMS (14-in-1 Suite)
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+              <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
                 Email or Username
               </label>
               <input
@@ -344,7 +466,7 @@ export default function JinvexaLMSApp() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+              <label className="block text-xs font-bold uppercase text-slate-500 mb-1">
                 Password
               </label>
               <input
@@ -362,25 +484,29 @@ export default function JinvexaLMSApp() {
             )}
             <button
               type="submit"
-              className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2.5 rounded-lg shadow transition text-sm flex items-center justify-center gap-2"
+              className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2.5 rounded-lg shadow text-sm flex items-center justify-center gap-2"
             >
               Enter Jinvexa University <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
           <div className="pt-4 border-t border-slate-200/50 text-[11px] text-slate-500 text-center space-y-1">
-            <p>Demo Learner: <span className="font-mono font-bold">alice / alice123</span></p>
-            <p>Demo Admin: <span className="font-mono font-bold">admin / admin123</span></p>
+            <p>
+              Demo Learner: <span className="font-mono font-bold">alice / alice123</span>
+            </p>
+            <p>
+              Demo Admin: <span className="font-mono font-bold">admin / admin123</span>
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  // --- MAIN 14-FUNCTIONALITY LMS LAYOUT ---
+  // --- 2. MAIN 14-FUNCTIONALITY ENTERPRISE LMS LAYOUT ---
   return (
     <div className={`min-h-screen ${bgMain} flex flex-col font-sans transition-colors duration-300`}>
-      {/* 1. LMS TOP NAVBAR */}
+      {/* HEADER NAVBAR */}
       <header
         className={`h-16 border-b ${
           isZen ? "border-slate-800 bg-slate-900/90" : "border-slate-200 bg-white/95"
@@ -477,9 +603,9 @@ export default function JinvexaLMSApp() {
           </nav>
         </div>
 
-        {/* Global Controls: Theme Switcher, Active Model Pill, & Logout */}
+        {/* Global Header Actions: Theme Switcher, Model Info, & Exit */}
         <div className="flex items-center gap-3">
-          {/* THEME SWITCHER: LIGHT ☀️ vs ZEN 🧘 */}
+          {/* THEME SWITCHER: LIGHT MODE ☀️ vs ZEN MODE 🧘 */}
           <button
             onClick={() => setThemeMode(isZen ? "light" : "zen")}
             className={`px-3 py-1.5 rounded-full border text-xs font-semibold flex items-center gap-1.5 transition ${
@@ -489,14 +615,20 @@ export default function JinvexaLMSApp() {
             }`}
             title="Toggle Theme Mode"
           >
-            {isZen ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5 text-amber-600" />}
+            {isZen ? (
+              <Moon className="w-3.5 h-3.5" />
+            ) : (
+              <Sun className="w-3.5 h-3.5 text-amber-600" />
+            )}
             <span>{isZen ? "Zen Mode" : "Light Mode"}</span>
           </button>
 
-          {/* Functionality #12: Model Info Badge */}
+          {/* FUNCTIONALITY #12: MODEL INFO PILL */}
           <div
             className={`hidden md:flex items-center gap-2 border rounded-full px-3 py-1 text-[11px] font-mono ${
-              isZen ? "bg-slate-950 border-slate-800 text-slate-300" : "bg-slate-100 border-slate-200 text-slate-700"
+              isZen
+                ? "bg-slate-950 border-slate-800 text-slate-300"
+                : "bg-slate-100 border-slate-200 text-slate-700"
             }`}
           >
             <Cpu className="w-3.5 h-3.5 text-violet-600" />
@@ -507,7 +639,7 @@ export default function JinvexaLMSApp() {
             <div className="w-8 h-8 rounded-full bg-violet-100 border border-violet-300 flex items-center justify-center text-violet-700 font-bold text-xs">
               {currentUser.username.charAt(0)}
             </div>
-            {/* Functionality #14: Exit / Logout */}
+            {/* FUNCTIONALITY #14: EXIT / LOGOUT */}
             <button
               onClick={() => setCurrentUser(null)}
               className="text-slate-400 hover:text-rose-600 transition"
@@ -519,9 +651,11 @@ export default function JinvexaLMSApp() {
         </div>
       </header>
 
-      {/* 2. MAIN VIEWPORT */}
+      {/* VIEWPORT AREA */}
       <main className="flex-1 overflow-y-auto">
-        {/* TAB 1: MY LEARNING DASHBOARD */}
+        {/* =========================================================================
+            TAB 1: MY LEARNING DASHBOARD
+           ========================================================================= */}
         {activeTab === "dashboard" && (
           <div className="max-w-6xl mx-auto p-8 space-y-8">
             <div
@@ -533,72 +667,92 @@ export default function JinvexaLMSApp() {
             >
               <div className="space-y-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-violet-600 bg-violet-500/10 px-2.5 py-1 rounded border border-violet-500/20">
-                  Autonomous Degree Track
+                  Active Specialization: {activeCourseTitle}
                 </span>
                 <h1 className="text-3xl font-extrabold">Welcome back, {currentUser.username}</h1>
                 <p className={`text-sm max-w-xl ${isZen ? "text-slate-300" : "text-slate-600"}`}>
-                  You are making steady progress! You have completed 4 lessons this week. Keep up the momentum to complete your specialized certification.
+                  Your autonomous curriculum is live. Continue your active lectures or design a new specialized career track.
                 </p>
               </div>
               <button
                 onClick={() => setActiveTab("discovery")}
                 className="bg-violet-600 hover:bg-violet-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition text-sm flex items-center gap-2 whitespace-nowrap"
               >
-                <Sparkles className="w-4 h-4" /> Build New AI Curriculum
+                <Sparkles className="w-4 h-4" /> Build New Specialization
               </button>
             </div>
 
             <div className="space-y-4">
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-violet-600" /> In Progress Specializations
+                <BookOpen className="w-5 h-5 text-violet-600" /> Active Learning Tracks (
+                {userSessions.length})
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {mockSessions.map((sess, idx) => (
-                  <div
-                    key={idx}
-                    className={`${bgCard} border rounded-xl p-6 flex flex-col justify-between space-y-6 shadow-sm transition`}
+
+              {userSessions.length === 0 ? (
+                <div className={`${bgCard} border rounded-xl p-8 text-center space-y-3 shadow-sm`}>
+                  <p className="text-sm font-medium text-slate-500">
+                    No active specializations created yet.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab("discovery")}
+                    className="bg-violet-600 text-white font-semibold px-5 py-2 rounded-xl text-xs"
                   >
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center text-xs text-slate-500 font-medium">
-                        <span>{sess.mode} Course</span>
-                        <span className="text-violet-600 font-bold bg-violet-500/10 px-2 py-0.5 rounded">
-                          {sess.status}
+                    Create Your First Specialization
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {userSessions.map((sess, idx) => (
+                    <div
+                      key={idx}
+                      className={`${bgCard} border rounded-xl p-6 flex flex-col justify-between space-y-6 shadow-sm transition`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-xs text-slate-500 font-medium">
+                          <span>{sess.mode} Course</span>
+                          <span className="text-violet-600 font-bold bg-violet-500/10 px-2 py-0.5 rounded">
+                            {sess.status}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-bold">{sess.topic}</h3>
+                        <p className="text-xs text-slate-500 font-mono">ID: {sess.id}</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs font-semibold">
+                          <span>Overall Completion</span>
+                          <span className="text-violet-600">{sess.progress}</span>
+                        </div>
+                        <div className="w-full h-2 bg-slate-200/50 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-violet-600 rounded-full"
+                            style={{ width: sess.progress }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-slate-200/50 flex justify-between items-center">
+                        <span className="text-xs text-slate-500 font-medium">
+                          Lessons: {sess.lessonsGenerated} • Audio: {sess.audioFiles}
                         </span>
-                      </div>
-                      <h3 className="text-lg font-bold">{sess.topic}</h3>
-                      <p className="text-xs text-slate-500">ID: {sess.id}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs font-semibold">
-                        <span>Overall Completion</span>
-                        <span className="text-violet-600">{sess.progress}</span>
-                      </div>
-                      <div className="w-full h-2 bg-slate-200/50 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-violet-600 rounded-full"
-                          style={{ width: sess.progress }}
-                        />
+                        <button
+                          onClick={() => handleContinueConversation(sess.topic, sess.roadmap)}
+                          className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
+                        >
+                          Open Classroom <Play className="w-3.5 h-3.5 fill-current" />
+                        </button>
                       </div>
                     </div>
-                    <div className="pt-4 border-t border-slate-200/50 flex justify-between items-center">
-                      <span className="text-xs text-slate-500 font-medium">
-                        Lessons: {sess.lessonsGenerated} • Audio: {sess.audioFiles}
-                      </span>
-                      <button
-                        onClick={() => setActiveTab("classroom")}
-                        className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
-                      >
-                        Resume Lecture <Play className="w-3.5 h-3.5 fill-current" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* TAB 2: EXPLORE SPECIALIZATIONS (Functionalities #1 & #2: Goal-Based & Reference-Based Discovery) */}
+        {/* =========================================================================
+            TAB 2: EXPLORE & DISCOVER (#1 & #2: GOAL-BASED & REFERENCE-BASED LEARNING)
+           ========================================================================= */}
         {activeTab === "discovery" && (
           <div className="max-w-5xl mx-auto p-8 space-y-8">
             <div className="text-center max-w-2xl mx-auto space-y-3">
@@ -610,7 +764,7 @@ export default function JinvexaLMSApp() {
                 Choose between entering a career goal or providing reference documentation.
               </p>
 
-              {/* Mode Switcher: Goal #1 vs Reference #2 */}
+              {/* FUNCTIONALITY #1 & #2: MODE TOGGLE */}
               <div className="inline-flex p-1 bg-slate-200/60 dark:bg-slate-900 border rounded-xl gap-1 mt-4">
                 <button
                   onClick={() => setDiscoveryType("goal")}
@@ -635,8 +789,10 @@ export default function JinvexaLMSApp() {
               </div>
             </div>
 
-            {/* Input Form Card */}
-            <div className={`${bgCard} border rounded-2xl p-4 shadow-lg max-w-3xl mx-auto flex flex-col sm:flex-row gap-3`}>
+            {/* Input Studio Card */}
+            <div
+              className={`${bgCard} border rounded-2xl p-4 shadow-lg max-w-3xl mx-auto flex flex-col sm:flex-row gap-3`}
+            >
               <div className="relative flex-1">
                 <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
                 <input
@@ -649,8 +805,8 @@ export default function JinvexaLMSApp() {
                   }
                   placeholder={
                     discoveryType === "goal"
-                      ? "e.g., 'Master Artificial Intelligence and LLM Systems'"
-                      : "Paste URL, YouTube link, or document path (e.g., 'https://arxiv.org/abs/...')"
+                      ? "e.g., 'Master Robotics Engineering and Motion Control'"
+                      : "Paste URL, YouTube link, or document path"
                   }
                   className={`w-full ${bgInput} border rounded-xl pl-11 pr-4 py-3 text-sm outline-none focus:border-violet-600 transition`}
                 />
@@ -660,24 +816,29 @@ export default function JinvexaLMSApp() {
                 disabled={isAnalyzing}
                 className="bg-violet-600 hover:bg-violet-700 text-white font-semibold px-8 py-3 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-md"
               >
-                {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                {isAnalyzing ? "Analyzing & Building..." : "Generate Specialization"}
+                {isAnalyzing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+                {isAnalyzing ? "Building Curriculum..." : "Generate Specialization"}
               </button>
             </div>
 
             {/* Generated Specialization Curriculum */}
             {generatedRoadmap.length > 0 && (
               <div className="space-y-6 pt-6 border-t border-slate-200/50 animate-in fade-in">
-                <div className={`${bgCard} border rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm`}>
+                <div
+                  className={`${bgCard} border rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm`}
+                >
                   <div>
                     <span className="text-xs text-violet-600 font-bold uppercase tracking-wider">
-                      Professional Specialization ({discoveryType.toUpperCase()})
+                      Generated Specialization ({discoveryType.toUpperCase()})
                     </span>
-                    <h2 className="text-2xl font-bold mt-1">
-                      {goalInput || referenceUrl || "AI Engineering Track"}
-                    </h2>
+                    <h2 className="text-2xl font-bold mt-1">{activeCourseTitle}</h2>
                     <p className="text-xs text-slate-500 mt-1">
-                      Complete all modules to unlock your Degree Certificate.
+                      {generatedRoadmap.length} Modules • Complete all phases to unlock your Degree
+                      Certificate.
                     </p>
                   </div>
                   <button
@@ -718,14 +879,19 @@ export default function JinvexaLMSApp() {
                           </div>
                         </div>
                         <div className="flex items-center gap-4 border-t md:border-t-0 pt-4 md:pt-0 border-slate-200/50 w-full md:w-auto justify-between md:justify-end">
-                          <span className="text-xs text-slate-500 font-mono flex items-center gap-1 font-medium">
-                            <Clock className="w-3.5 h-3.5" /> {item.hours} hrs
+                          <span className="text-xs text-slate-500 font-mono font-medium">
+                            <Clock className="w-3.5 h-3.5 inline mr-1" />
+                            {item.hours} hrs
                           </span>
                           <button
-                            onClick={() => setActiveTab("classroom")}
+                            onClick={() => {
+                              setActiveModuleIdx(idx);
+                              setActiveLessonIdx(0);
+                              setActiveTab("classroom");
+                            }}
                             className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-semibold transition"
                           >
-                            View Syllabus
+                            Open Module
                           </button>
                         </div>
                       </div>
@@ -737,9 +903,12 @@ export default function JinvexaLMSApp() {
           </div>
         )}
 
-        {/* TAB 3: TEACHING LAYER CLASSROOM (Functionality #3) */}
+        {/* =========================================================================
+            TAB 3: TEACHING LAYER CLASSROOM (FUNCTIONALITY #3)
+           ========================================================================= */}
         {activeTab === "classroom" && (
           <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+            {/* Left Course Syllabus Sidebar */}
             <aside
               className={`w-80 border-r ${
                 isZen ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"
@@ -750,57 +919,55 @@ export default function JinvexaLMSApp() {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Course Syllabus
                   </h3>
-                  <p className="text-sm font-bold truncate w-56">
-                    {goalInput || "AI Systems Engineering"}
-                  </p>
+                  <p className="text-sm font-bold truncate w-56">{activeCourseTitle}</p>
                 </div>
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                {syllabus.map((mod, modIdx) => (
+                {(generatedRoadmap.length > 0
+                  ? generatedRoadmap
+                  : [
+                      {
+                        phase: 1,
+                        title: "Module 1: Foundations of " + activeCourseTitle,
+                        topics: ["Core Theory", "Syntax & Logic", "System Architecture"],
+                      },
+                      {
+                        phase: 2,
+                        title: "Module 2: Advanced " + activeCourseTitle,
+                        topics: ["Engineering Workflows", "Optimization", "Deployment"],
+                      },
+                    ]
+                ).map((mod, modIdx) => (
                   <div key={modIdx} className="space-y-2">
                     <div className="flex items-center justify-between text-xs font-bold">
-                      <span>{mod.module}</span>
+                      <span>{mod.title}</span>
                     </div>
-                    <p className="text-[10px] text-slate-500 font-medium">{mod.duration}</p>
 
                     <div className="space-y-1 pt-1">
-                      {mod.lessons.map((les, lesIdx) => {
-                        const isCurrent = activeModule === modIdx && activeLesson === lesIdx;
+                      {mod.topics?.map((topTitle: string, lesIdx: number) => {
+                        const isCurrent =
+                          activeModuleIdx === modIdx && activeLessonIdx === lesIdx;
                         return (
                           <div
                             key={lesIdx}
                             onClick={() => {
-                              setActiveModule(modIdx);
-                              setActiveLesson(lesIdx);
+                              setActiveModuleIdx(modIdx);
+                              setActiveLessonIdx(lesIdx);
                             }}
                             className={`p-3 rounded-xl cursor-pointer transition flex items-start gap-3 border ${
                               isCurrent
-                                ? "bg-violet-50 dark:bg-violet-950/40 border-violet-300 dark:border-violet-500 text-violet-700 dark:text-violet-300 font-semibold shadow-sm"
+                                ? "bg-violet-500/10 border-violet-500 text-violet-600 font-semibold shadow-sm"
                                 : "bg-transparent border-transparent hover:bg-slate-100/50 dark:hover:bg-slate-800/40 text-slate-600 dark:text-slate-400"
                             }`}
                           >
-                            <div className="mt-0.5">
-                              {les.type === "audio" ? (
-                                <Volume2
-                                  className={`w-4 h-4 ${
-                                    isCurrent ? "text-violet-600" : "text-slate-400"
-                                  }`}
-                                />
-                              ) : (
-                                <FileText
-                                  className={`w-4 h-4 ${
-                                    isCurrent ? "text-violet-600" : "text-slate-400"
-                                  }`}
-                                />
-                              )}
-                            </div>
+                            <FileText
+                              className={`w-4 h-4 mt-0.5 ${
+                                isCurrent ? "text-violet-600" : "text-slate-400"
+                              }`}
+                            />
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs truncate">{les.title}</p>
-                              <div className="flex justify-between items-center mt-1 text-[10px] text-slate-400 font-medium">
-                                <span>{les.voice}</span>
-                                <span>{les.duration}</span>
-                              </div>
+                              <p className="text-xs truncate">{topTitle}</p>
                             </div>
                           </div>
                         );
@@ -814,84 +981,99 @@ export default function JinvexaLMSApp() {
             {/* Main Lecture Viewport */}
             <div className={`flex-1 flex flex-col ${bgMain} overflow-y-auto`}>
               <div className="p-6 max-w-4xl mx-auto w-full space-y-6">
+                {/* Breadcrumb */}
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                  <span>Course 2</span> <ChevronRight className="w-3.5 h-3.5" />
-                  <span>{syllabus[activeModule].module}</span>{" "}
+                  <span>Specialization</span> <ChevronRight className="w-3.5 h-3.5" />
+                  <span>
+                    {generatedRoadmap[activeModuleIdx]?.title || "Active Module"}
+                  </span>{" "}
                   <ChevronRight className="w-3.5 h-3.5" />
                   <span className="text-violet-600 font-semibold">
-                    {syllabus[activeModule].lessons[activeLesson].title}
+                    {generatedRoadmap[activeModuleIdx]?.topics?.[activeLessonIdx] ||
+                      "Active Lesson"}
                   </span>
                 </div>
 
+                {/* Player Header */}
                 <div className={`${bgCard} border rounded-2xl p-6 shadow-sm space-y-6`}>
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-mono font-medium bg-violet-500/10 text-violet-600 border border-violet-500/20 px-2.5 py-1 rounded">
-                          {syllabus[activeModule].lessons[activeLesson].voice}
-                        </span>
-                        <span className="text-[11px] text-slate-500 italic">
-                          "{syllabus[activeModule].lessons[activeLesson].reason}"
-                        </span>
-                      </div>
+                      <span className="text-[11px] font-mono font-bold bg-violet-500/10 text-violet-600 border border-violet-500/20 px-2.5 py-1 rounded">
+                        Specialization Track: {activeCourseTitle}
+                      </span>
                       <h1 className="text-2xl font-extrabold mt-2">
-                        {syllabus[activeModule].lessons[activeLesson].title}
+                        {generatedRoadmap[activeModuleIdx]?.topics?.[activeLessonIdx] ||
+                          "Active Lesson"}
                       </h1>
                     </div>
                     <button
                       onClick={() => setActiveTab("assessments")}
                       className="bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-2 rounded-xl text-xs transition flex items-center gap-1.5 shadow-sm"
                     >
-                      Next: Graded Quiz <ArrowRight className="w-3.5 h-3.5" />
+                      Take Module Quiz <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
+                  {/* Audio Controls */}
                   <div className="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-4 rounded-xl flex items-center gap-4">
-                    <button className="w-12 h-12 rounded-full bg-violet-600 hover:bg-violet-700 text-white flex items-center justify-center shadow transition flex-shrink-0">
-                      <Play className="w-5 h-5 ml-0.5 fill-current" />
+                    <button
+                      onClick={() => setIsPlayingAudio(!isPlayingAudio)}
+                      className="w-12 h-12 rounded-full bg-violet-600 hover:bg-violet-700 text-white flex items-center justify-center shadow transition flex-shrink-0"
+                    >
+                      {isPlayingAudio ? (
+                        <Pause className="w-5 h-5" />
+                      ) : (
+                        <Play className="w-5 h-5 ml-0.5 fill-current" />
+                      )}
                     </button>
                     <div className="flex-1 space-y-1">
                       <div className="flex justify-between text-xs font-semibold">
                         <span>AI Lecture Narration ({activeModel})</span>
-                        <span className="text-slate-500 font-mono">
-                          03:45 / {syllabus[activeModule].lessons[activeLesson].duration}
-                        </span>
+                        <span className="text-slate-500 font-mono">03:45 / 15:00</span>
                       </div>
-                      <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden cursor-pointer">
-                        <div className="w-1/3 h-full bg-violet-600 rounded-full" />
+                      <div
+                        onClick={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const pos = ((e.clientX - rect.left) / rect.width) * 100;
+                          setAudioProgress(Math.min(100, Math.max(0, pos)));
+                        }}
+                        className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden cursor-pointer"
+                      >
+                        <div
+                          className="h-full bg-violet-600 rounded-full"
+                          style={{ width: `${audioProgress}%` }}
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
 
+                {/* Dynamic Lesson Transcript & Notes */}
                 <div className={`${bgCard} border rounded-2xl p-8 space-y-6 shadow-sm`}>
                   <h3 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-violet-600" /> Lesson Transcript & Notes
+                    <FileText className="w-4 h-4 text-violet-600" /> AI Lesson Transcript & Notes
                   </h3>
-                  <div className="prose max-w-none text-sm space-y-4 leading-relaxed font-normal">
-                    <p>
-                      In traditional software engineering, algorithms are explicitly programmed using
-                      deterministic conditional logic. However, as problem domains scale in
-                      complexity—such as natural language translation or vision recognition—the
-                      human ability to hand-code rules collapses.
-                    </p>
-                    <div className="p-4 bg-slate-100 dark:bg-slate-950 border-l-4 border-violet-600 rounded-r-xl text-xs font-mono font-medium">
-                      Attention(Q, K, V) = softmax( (Q * K^T) / sqrt(d_k) ) * V
+
+                  {isLoadingLesson ? (
+                    <div className="py-12 text-center text-xs text-violet-600 font-bold flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Writing dynamic lesson notes
+                      for {activeCourseTitle}...
                     </div>
-                    <p>
-                      This equation represents the scaled dot-product attention. By computing the
-                      dot product between query (Q) and key (K) matrices, the model dynamically
-                      assigns importance weights to every token in the context window regardless of
-                      positional distance.
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="prose max-w-none text-sm space-y-4 leading-relaxed font-normal whitespace-pre-line">
+                      {currentLessonText ||
+                        `Welcome to your dynamic lesson in ${activeCourseTitle}. Select any topic on the left syllabus to generate its custom AI educational notes.`}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 4: ASSIGNMENTS LAYER (Functionality #4) */}
+        {/* =========================================================================
+            TAB 4: GRADED ASSIGNMENTS LAYER (FUNCTIONALITY #4)
+           ========================================================================= */}
         {activeTab === "assessments" && (
           <div className="max-w-4xl mx-auto p-8 space-y-8">
             <div className="border-b border-slate-200/50 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -900,7 +1082,7 @@ export default function JinvexaLMSApp() {
                   4. Assignment Layer
                 </span>
                 <h1 className="text-2xl font-bold mt-2">
-                  Module 1 Quiz: Transformer Architectures
+                  Module Assessment: {activeCourseTitle}
                 </h1>
                 <p className="text-xs text-slate-500 mt-1 font-medium">
                   Submit your responses to receive an immediate AI pedagogical evaluation and
@@ -917,7 +1099,7 @@ export default function JinvexaLMSApp() {
             {!assignmentData ? (
               <div className={`${bgCard} border rounded-2xl p-12 text-center space-y-4 shadow-sm`}>
                 <Award className="w-12 h-12 text-violet-600 mx-auto" />
-                <h3 className="text-lg font-bold">Ready to take the assessment?</h3>
+                <h3 className="text-lg font-bold">Ready for your {activeCourseTitle} quiz?</h3>
                 <p className="text-xs text-slate-500 max-w-md mx-auto font-medium">
                   This quiz consists of multiple-choice analytical questions and an open-ended
                   essay prompt evaluated autonomously.
@@ -932,27 +1114,24 @@ export default function JinvexaLMSApp() {
                   ) : (
                     <Sparkles className="w-4 h-4" />
                   )}
-                  {isLoadingAssignment ? "Compiling Quiz..." : "Start Graded Quiz"}
+                  {isLoadingAssignment ? "Compiling Custom Quiz..." : "Generate AI Quiz"}
                 </button>
               </div>
             ) : !evalResult ? (
               <div className={`${bgCard} border rounded-2xl p-8 space-y-8 shadow-md`}>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-violet-600 uppercase tracking-wider">
-                      Question 1 • Multiple Choice
-                    </span>
-                    <span className="text-xs text-slate-500 font-mono font-medium">10 Points</span>
-                  </div>
+                  <span className="text-xs font-bold text-violet-600 uppercase">
+                    Question 1 • Multiple Choice
+                  </span>
                   <p className="text-base font-semibold">{assignmentData.mcq?.question}</p>
                   <div className="space-y-2.5 pt-2">
                     {assignmentData.mcq?.options?.map((opt: string, idx: number) => (
                       <label
                         key={idx}
-                        className={`flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer text-sm transition font-medium ${
+                        className={`flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer text-sm font-medium ${
                           selectedMCQ === idx
-                            ? "bg-violet-500/10 border-violet-500 font-semibold shadow-sm"
-                            : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-slate-300"
+                            ? "bg-violet-500/10 border-violet-500 font-semibold"
+                            : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800"
                         }`}
                       >
                         <input
@@ -960,7 +1139,7 @@ export default function JinvexaLMSApp() {
                           name="mcq"
                           checked={selectedMCQ === idx}
                           onChange={() => setSelectedMCQ(idx)}
-                          className="w-4 h-4 text-violet-600 bg-white border-slate-300 focus:ring-0"
+                          className="w-4 h-4 text-violet-600"
                         />
                         {opt}
                       </label>
@@ -969,19 +1148,16 @@ export default function JinvexaLMSApp() {
                 </div>
 
                 <div className="space-y-4 pt-6 border-t border-slate-200/50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-violet-600 uppercase tracking-wider">
-                      Question 2 • Open Response
-                    </span>
-                    <span className="text-xs text-slate-500 font-mono font-medium">20 Points</span>
-                  </div>
+                  <span className="text-xs font-bold text-violet-600 uppercase">
+                    Question 2 • Open Essay Response
+                  </span>
                   <p className="text-base font-semibold">{assignmentData.essay?.question}</p>
                   <textarea
                     rows={5}
                     value={essayText}
                     onChange={(e) => setEssayText(e.target.value)}
                     placeholder="Provide a detailed, structured technical explanation..."
-                    className={`w-full ${bgInput} border rounded-xl p-4 text-sm placeholder-slate-400 outline-none focus:border-violet-600 transition`}
+                    className={`w-full ${bgInput} border rounded-xl p-4 text-sm outline-none focus:border-violet-600`}
                   />
                 </div>
 
@@ -989,27 +1165,25 @@ export default function JinvexaLMSApp() {
                   <button
                     onClick={handleSubmitAssignment}
                     disabled={isEvaluating || selectedMCQ === null || !essayText.trim()}
-                    className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-semibold px-8 py-3 rounded-xl transition text-sm flex items-center gap-2 shadow-md"
+                    className="bg-violet-600 hover:bg-violet-700 text-white font-semibold px-8 py-3 rounded-xl text-sm flex items-center gap-2 shadow-md"
                   >
                     {isEvaluating ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <Check className="w-4 h-4" />
                     )}
-                    {isEvaluating ? "AI Grading in Progress..." : "Submit Assessment"}
+                    {isEvaluating ? "AI Grading..." : "Submit Assessment"}
                   </button>
                 </div>
               </div>
             ) : (
-              <div className={`${bgCard} border rounded-2xl p-8 space-y-6 shadow-md animate-in zoom-in-95`}>
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div className={`${bgCard} border rounded-2xl p-8 space-y-6 shadow-md`}>
+                <div className="flex items-center justify-between p-6 bg-slate-100 dark:bg-slate-950 rounded-xl">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-full text-emerald-600">
-                      <Award className="w-8 h-8" />
-                    </div>
+                    <Award className="w-8 h-8 text-emerald-600" />
                     <div>
-                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
-                        Assessment Passed
+                      <span className="text-xs font-bold uppercase text-emerald-600">
+                        Assessment Evaluated
                       </span>
                       <h3 className="text-2xl font-extrabold mt-0.5">
                         Grade: {evalResult.grade} ({evalResult.score}%)
@@ -1018,26 +1192,22 @@ export default function JinvexaLMSApp() {
                   </div>
                   <button
                     onClick={() => setAssignmentData(null)}
-                    className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-semibold transition shadow-sm"
+                    className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-semibold"
                   >
-                    Retake Quiz
+                    Take New Test
                   </button>
                 </div>
-
-                <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                    Pedagogical Feedback
-                  </h4>
-                  <div className="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-5 rounded-xl text-sm leading-relaxed font-normal">
-                    {evalResult.feedback}
-                  </div>
+                <div className="p-5 bg-slate-100 dark:bg-slate-950 rounded-xl text-sm">
+                  {evalResult.feedback}
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* TAB 5: AI COACH & HISTORY (Functionalities #5 & #6: Mentoring Layer & History) */}
+        {/* =========================================================================
+            TAB 5: AI COACH & HISTORY (#5 & #6: MENTORING LAYER & HISTORY)
+           ========================================================================= */}
         {activeTab === "coach" && (
           <div className="max-w-4xl mx-auto p-8 h-[calc(100vh-4rem)] flex flex-col">
             <div className={`${bgCard} border rounded-2xl flex-1 flex flex-col overflow-hidden shadow-lg`}>
@@ -1049,12 +1219,13 @@ export default function JinvexaLMSApp() {
                   <div>
                     <h3 className="text-sm font-bold">5. Jinvexa AI Learning Coach</h3>
                     <p className="text-[10px] text-slate-500 font-medium">
-                      Mode: <span className="text-violet-600 font-bold">{mentorMode.toUpperCase()}</span> • Context trained on your active syllabus
+                      Context: {activeCourseTitle} • Mode:{" "}
+                      <span className="text-violet-600 font-bold">{mentorMode.toUpperCase()}</span>
                     </p>
                   </div>
                 </div>
 
-                {/* Mode Toggle (#5) & Mentoring History Button (#6) */}
+                {/* #5: Mode Switcher & #6: History Trigger */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setMentorMode(mentorMode === "session" ? "full" : "session")}
@@ -1072,7 +1243,7 @@ export default function JinvexaLMSApp() {
                 </div>
               </div>
 
-              {/* Mentoring History Drawer (Functionality #6) */}
+              {/* FUNCTIONALITY #6: MENTORING HISTORY DRAWER */}
               {showHistoryModal && (
                 <div className="p-4 bg-violet-50 dark:bg-slate-900 border-b border-violet-200 dark:border-slate-800 space-y-2 animate-in fade-in">
                   <div className="flex justify-between items-center">
@@ -1097,13 +1268,18 @@ export default function JinvexaLMSApp() {
                       >
                         <div>
                           <p className="font-bold truncate">{hist.topic}</p>
-                          <p className="text-[10px] text-slate-500">{hist.date} • {hist.msgs} msgs</p>
+                          <p className="text-[10px] text-slate-500">
+                            {hist.date} • {hist.msgs} msgs
+                          </p>
                         </div>
                         <button
                           onClick={() => {
                             setCoachMessages([
                               ...coachMessages,
-                              { sender: "coach", text: `Resuming conversation on '${hist.topic}'. Where left off?` },
+                              {
+                                sender: "coach",
+                                text: `Resuming conversation on '${hist.topic}'. Where left off?`,
+                              },
                             ]);
                             setShowHistoryModal(false);
                           }}
@@ -1119,7 +1295,10 @@ export default function JinvexaLMSApp() {
 
               <div className="flex-1 p-6 overflow-y-auto space-y-4">
                 {coachMessages.map((msg, idx) => (
-                  <div key={idx} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+                  <div
+                    key={idx}
+                    className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                  >
                     <div
                       className={`max-w-lg p-4 rounded-2xl text-xs leading-relaxed font-medium ${
                         msg.sender === "user"
@@ -1144,8 +1323,8 @@ export default function JinvexaLMSApp() {
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                  placeholder="Ask for lecture summaries, code debugging, or math explanations..."
-                  className={`flex-1 ${bgInput} border rounded-xl px-4 py-3 text-xs placeholder-slate-400 outline-none focus:border-violet-600 shadow-sm transition`}
+                  placeholder={`Ask about ${activeCourseTitle}...`}
+                  className={`flex-1 ${bgInput} border rounded-xl px-4 py-3 text-xs outline-none focus:border-violet-600 shadow-sm transition`}
                 />
                 <button
                   onClick={handleSendMessage}
@@ -1158,15 +1337,19 @@ export default function JinvexaLMSApp() {
           </div>
         )}
 
-        {/* TAB 6: ANALYTICS, SESSIONS, PROGRESS, & TEACHING STATUS (#7, #8, #9, #10, & #11) */}
+        {/* =========================================================================
+            TAB 6: ANALYTICS, SESSIONS, PROGRESS, & TEACHING STATUS (#7, #8, #9, #10, & #11)
+           ========================================================================= */}
         {activeTab === "analytics" && (
           <div className="max-w-6xl mx-auto p-8 space-y-8">
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2">
-                <BarChart3 className="w-6 h-6 text-violet-600" /> 7. & 8. Analytics & Progress Metrics
+                <BarChart3 className="w-6 h-6 text-violet-600" /> 7. & 8. Analytics & Progress
+                Metrics
               </h1>
               <p className="text-xs text-slate-500 mt-1">
-                Real-time tracking of your mastered concepts, assignments, and certificate eligibility.
+                Real-time tracking of your mastered concepts, assignments, and certificate
+                eligibility.
               </p>
             </div>
 
@@ -1174,20 +1357,35 @@ export default function JinvexaLMSApp() {
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}>
                 <p className="text-xs text-slate-500 uppercase font-semibold">Total Sessions</p>
-                <p className="text-3xl font-extrabold text-violet-600">14</p>
+                <p className="text-3xl font-extrabold text-violet-600">{userSessions.length}</p>
               </div>
               <div className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}>
-                <p className="text-xs text-slate-500 uppercase font-semibold">Mastered Concepts</p>
-                <p className="text-3xl font-extrabold text-purple-600">42</p>
+                <p className="text-xs text-slate-500 uppercase font-semibold">
+                  Mastered Modules
+                </p>
+                <p className="text-3xl font-extrabold text-purple-600">
+                  {generatedRoadmap.length || 3}
+                </p>
               </div>
               <div className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}>
-                <p className="text-xs text-slate-500 uppercase font-semibold">Average Quiz Score</p>
-                <p className="text-3xl font-extrabold text-emerald-600">88%</p>
+                <p className="text-xs text-slate-500 uppercase font-semibold">
+                  Average Quiz Score
+                </p>
+                <p className="text-3xl font-extrabold text-emerald-600">
+                  {userScores.length > 0
+                    ? Math.round(
+                        userScores.reduce((a, b) => a + b, 0) / userScores.length
+                      ) + "%"
+                    : "N/A"}
+                </p>
               </div>
               <div className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}>
-                <p className="text-xs text-slate-500 uppercase font-semibold">7. Certificate Status</p>
+                <p className="text-xs text-slate-500 uppercase font-semibold">
+                  7. Certificate Status
+                </p>
                 <p className="text-sm font-bold text-emerald-600 flex items-center gap-1 mt-1">
-                  <CheckCircle2 className="w-4 h-4" /> Eligible for Track
+                  <CheckCircle2 className="w-4 h-4" />{" "}
+                  {userSessions.length > 0 ? "Eligible" : "Pending Session"}
                 </p>
               </div>
             </div>
@@ -1198,7 +1396,7 @@ export default function JinvexaLMSApp() {
                 <Layers className="w-5 h-5 text-violet-600" /> 9. All User Sessions
               </h2>
               <div className="grid grid-cols-1 gap-4">
-                {mockSessions.map((sess, idx) => (
+                {userSessions.map((sess, idx) => (
                   <div
                     key={idx}
                     className={`${bgCard} border rounded-xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm`}
@@ -1223,7 +1421,9 @@ export default function JinvexaLMSApp() {
 
                       {/* Functionality #10: Continue Conversation Trigger */}
                       <button
-                        onClick={() => handleContinueConversation(sess.topic)}
+                        onClick={() =>
+                          handleContinueConversation(sess.topic, sess.roadmap)
+                        }
                         className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition"
                       >
                         <span>10. Continue Conversation</span>
@@ -1250,7 +1450,8 @@ export default function JinvexaLMSApp() {
                   </div>
                   <div className="space-y-2 text-xs">
                     <p>
-                      <strong>Session ID:</strong> <span className="font-mono">{selectedSessionInspect.id}</span>
+                      <strong>Session ID:</strong>{" "}
+                      <span className="font-mono">{selectedSessionInspect.id}</span>
                     </p>
                     <p>
                       <strong>Topic:</strong> {selectedSessionInspect.topic}
@@ -1259,14 +1460,18 @@ export default function JinvexaLMSApp() {
                       <strong>Generated Manifest:</strong> Complete • 4 Phases
                     </p>
                     <p>
-                      <strong>Text Lesson Files:</strong> {selectedSessionInspect.textFiles} files ready
+                      <strong>Text Lesson Files:</strong> {selectedSessionInspect.textFiles} files
+                      ready
                     </p>
                     <p>
-                      <strong>TTS Audio Files:</strong> {selectedSessionInspect.audioFiles} files ready
+                      <strong>TTS Audio Files:</strong> {selectedSessionInspect.audioFiles} files
+                      ready
                     </p>
                     <p>
                       <strong>Overall Status:</strong>{" "}
-                      <span className="text-emerald-600 font-bold">{selectedSessionInspect.status}</span>
+                      <span className="text-emerald-600 font-bold">
+                        {selectedSessionInspect.status}
+                      </span>
                     </p>
                   </div>
                 </div>
@@ -1275,7 +1480,9 @@ export default function JinvexaLMSApp() {
           </div>
         )}
 
-        {/* TAB 7: ADMIN SUITE (Functionality #12 & #13: Model Info & Change Model) */}
+        {/* =========================================================================
+            TAB 7: ADMIN SUITE (#12 & #13: MODEL INFO & CHANGE MODEL)
+           ========================================================================= */}
         {activeTab === "admin" && currentUser.role === "admin" && (
           <div className="max-w-5xl mx-auto p-8 space-y-8">
             <div>
