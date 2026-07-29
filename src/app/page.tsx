@@ -120,13 +120,13 @@ interface QuizPayload {
 export default function JinvexaEnterpriseLMS() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
 
-  // Auth State (#14) - Loads from LocalStorage so refresh does not log out
+  // Auth State (#14) - Persistent across page refreshes
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [authError, setAuthError] = useState("");
 
-  // Hydration Guard Flag - Prevents overwriting storage on initial load
+  // Hydration Guard Flag
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Load Saved User Login on First Mount
@@ -160,50 +160,10 @@ export default function JinvexaEnterpriseLMS() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // --- DYNAMIC LEARNING SESSIONS DATABASE (#9) ---
-  const [userSessions, setUserSessions] = useState<SessionRecord[]>([
-    {
-      id: "sess_1_20260729_data_eng",
-      topic: "Data Engineering & Cloud Big Data Architecture",
-      mode: "Goal-Based",
-      created: "2026-07-29 09:30",
-      messages: 14,
-      progress: "40%",
-      lessonsGenerated: 15,
-      audioFiles: 8,
-      textFiles: 7,
-      status: "Complete • Ready for Classroom",
-      roadmap: [
-        {
-          phase: 1,
-          title: "Foundations in Data Engineering",
-          hours: 20,
-          topics: [
-            "Introduction to Data Engineering & Pipelines",
-            "Data Ingestion and Streaming Processing",
-            "Distributed Storage & Retrieval Schemas",
-            "Data Quality, Lineage and Governance",
-          ],
-          description:
-            "Comprehensive introduction to big data pipelines and distributed storage.",
-        },
-        {
-          phase: 2,
-          title: "Data Engineering with Big Data and Cloud",
-          hours: 25,
-          topics: [
-            "Big Data Technologies (Hadoop, Spark, Kafka)",
-            "Cloud-Based Data Warehousing (AWS, GCP, Snowflake)",
-            "ETL vs ELT Workflows and Transformations",
-            "Data Security, Encryption and Compliance",
-          ],
-          description:
-            "Deep technical dive into enterprise cloud warehouses and stream processing.",
-        },
-      ],
-    },
-  ]);
+  // INITIALIZED AS EMPTY [] TO PREVENT OVERWRITING MONGODB ON MOUNT!
+  const [userSessions, setUserSessions] = useState<SessionRecord[]>([]);
 
-  // 1. Fetch user sessions from MongoDB or LocalStorage safely
+  // 1. Fetch user sessions safely from MongoDB or LocalStorage
   useEffect(() => {
     async function loadSessionsFromStorage() {
       if (!currentUser) return;
@@ -241,6 +201,7 @@ export default function JinvexaEnterpriseLMS() {
                 setGeneratedRoadmap(parsed[0].roadmap);
                 setActiveCourseTitle(parsed[0].topic);
               }
+              loadedSuccessfully = true;
             }
           } catch (err) {
             console.error("Failed to load saved sessions from localStorage");
@@ -248,7 +209,54 @@ export default function JinvexaEnterpriseLMS() {
         }
       }
 
-      // Allow storage saves now that hydration is complete
+      // If neither MongoDB nor LocalStorage had any courses, provide the default demo course
+      if (!loadedSuccessfully) {
+        const defaultDemoCourse: SessionRecord = {
+          id: "sess_1_20260729_data_eng",
+          topic: "Data Engineering & Cloud Big Data Architecture",
+          mode: "Goal-Based",
+          created: "2026-07-29 09:30",
+          messages: 14,
+          progress: "40%",
+          lessonsGenerated: 15,
+          audioFiles: 8,
+          textFiles: 7,
+          status: "Complete • Ready for Classroom",
+          roadmap: [
+            {
+              phase: 1,
+              title: "Foundations in Data Engineering",
+              hours: 20,
+              topics: [
+                "Introduction to Data Engineering & Pipelines",
+                "Data Ingestion and Streaming Processing",
+                "Distributed Storage & Retrieval Schemas",
+                "Data Quality, Lineage and Governance",
+              ],
+              description:
+                "Comprehensive introduction to big data pipelines and distributed storage.",
+            },
+            {
+              phase: 2,
+              title: "Data Engineering with Big Data and Cloud",
+              hours: 25,
+              topics: [
+                "Big Data Technologies (Hadoop, Spark, Kafka)",
+                "Cloud-Based Data Warehousing (AWS, GCP, Snowflake)",
+                "ETL vs ELT Workflows and Transformations",
+                "Data Security, Encryption and Compliance",
+              ],
+              description:
+                "Deep technical dive into enterprise cloud warehouses and stream processing.",
+            },
+          ],
+        };
+        setUserSessions([defaultDemoCourse]);
+        setGeneratedRoadmap(defaultDemoCourse.roadmap || []);
+        setActiveCourseTitle(defaultDemoCourse.topic);
+      }
+
+      // Allow storage saving now that hydration is complete
       setIsHydrated(true);
     }
 
@@ -272,9 +280,7 @@ export default function JinvexaEnterpriseLMS() {
   const [activeCourseTitle, setActiveCourseTitle] = useState(
     "Data Engineering & Cloud Big Data Architecture"
   );
-  const [generatedRoadmap, setGeneratedRoadmap] = useState<ModuleItem[]>(
-    userSessions[0].roadmap || []
-  );
+  const [generatedRoadmap, setGeneratedRoadmap] = useState<ModuleItem[]>([]);
 
   // Teaching Layer Classroom State (#3)
   const [activeModuleIdx, setActiveModuleIdx] = useState(0);
@@ -1344,7 +1350,7 @@ export default function JinvexaEnterpriseLMS() {
               <div
                 className={`${bgCard} border rounded-2xl p-8 space-y-8 shadow-md`}
               >
-                {/* HIGH CONTRAST ANALYTICAL MULTIPLE CHOICE SECTION */}
+                {/* GUARANTEED HIGH CONTRAST ANALYTICAL MULTIPLE CHOICE SECTION */}
                 <div className="space-y-8">
                   <h2 className="text-sm font-bold text-violet-600 uppercase tracking-wider border-b pb-2">
                     Part 1: Analytical Multiple Choice (
