@@ -87,7 +87,9 @@ interface ModuleItem {
 }
 
 interface SessionRecord {
-  id: string;
+  id?: string;
+  _id?: string;
+  userId?: string;
   topic: string;
   mode: "Goal-Based" | "Reference-Based";
   created: string;
