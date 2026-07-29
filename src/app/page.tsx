@@ -126,6 +126,9 @@ export default function JinvexaEnterpriseLMS() {
   const [loginPassword, setLoginPassword] = useState("");
   const [authError, setAuthError] = useState("");
 
+  // Hydration Guard Flag - Prevents overwriting storage on initial load
+  const [isHydrated, setIsHydrated] = useState(false);
+
   // Load Saved User Login on First Mount
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -200,10 +203,13 @@ export default function JinvexaEnterpriseLMS() {
     },
   ]);
 
-  // 1. Fetch user sessions from MongoDB when logged in (with LocalStorage fallback)
+  // 1. Fetch user sessions from MongoDB or LocalStorage safely
   useEffect(() => {
-    async function loadSessionsFromMongo() {
+    async function loadSessionsFromStorage() {
       if (!currentUser) return;
+      let loadedSuccessfully = false;
+
+      // Check MongoDB First
       try {
         const res = await fetch(`/api/sessions?userId=${currentUser.id}`);
         const data = await res.json();
@@ -217,36 +223,44 @@ export default function JinvexaEnterpriseLMS() {
             setGeneratedRoadmap(normalizedSessions[0].roadmap);
             setActiveCourseTitle(normalizedSessions[0].topic);
           }
-          return;
+          loadedSuccessfully = true;
         }
       } catch (err) {
-        console.error("Failed to load MongoDB sessions, checking localStorage", err);
+        console.error("Failed to load MongoDB sessions, checking localStorage fallback");
       }
 
-      // LocalStorage fallback if MongoDB query fails
-      if (typeof window !== "undefined") {
-        const savedSessions = localStorage.getItem("jinvexa_sessions");
+      // Check LocalStorage if MongoDB had no courses
+      if (!loadedSuccessfully && typeof window !== "undefined") {
+        const savedSessions = localStorage.getItem(`jinvexa_sessions_${currentUser.id}`);
         if (savedSessions) {
           try {
             const parsed = JSON.parse(savedSessions);
             if (Array.isArray(parsed) && parsed.length > 0) {
               setUserSessions(parsed);
+              if (parsed[0].roadmap) {
+                setGeneratedRoadmap(parsed[0].roadmap);
+                setActiveCourseTitle(parsed[0].topic);
+              }
             }
           } catch (err) {
             console.error("Failed to load saved sessions from localStorage");
           }
         }
       }
+
+      // Allow storage saves now that hydration is complete
+      setIsHydrated(true);
     }
-    loadSessionsFromMongo();
+
+    loadSessionsFromStorage();
   }, [currentUser]);
 
-  // Save Sessions to Browser Memory whenever userSessions updates
+  // 2. Save Sessions to Browser Memory safely ONLY after hydration is done
   useEffect(() => {
-    if (typeof window !== "undefined" && userSessions.length > 0) {
-      localStorage.setItem("jinvexa_sessions", JSON.stringify(userSessions));
+    if (isHydrated && typeof window !== "undefined" && currentUser && userSessions.length > 0) {
+      localStorage.setItem(`jinvexa_sessions_${currentUser.id}`, JSON.stringify(userSessions));
     }
-  }, [userSessions]);
+  }, [userSessions, isHydrated, currentUser]);
 
   // Discovery Engine (#1 & #2)
   const [discoveryType, setDiscoveryType] = useState<"goal" | "reference">(
@@ -382,7 +396,7 @@ export default function JinvexaEnterpriseLMS() {
             setUserSessions((prev) => [newSessionRecord, ...prev]);
           }
         } catch (mongoError) {
-          console.error("MongoDB save failed, falling back to local state:", mongoError);
+          console.error("MongoDB save failed, saving to state and localStorage:", mongoError);
           setUserSessions((prev) => [newSessionRecord, ...prev]);
         }
 
