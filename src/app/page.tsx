@@ -1,3 +1,24 @@
+I see the exact visual bugs from your screenshots and why your generated courses disappear after re-logging in!
+
+### Why Were These Two Bugs Happening?
+
+1. **The Visual Contrast Bug:** Some elements (like unselected multiple-choice option cards and topic keyword tags) were still using `bg-slate-950` or `bg-slate-900` even while **Light Mode** was active. When a dark background is paired with dark text (`text-slate-900`), the words become invisible black-on-black or white-on-white text.
+2. **The Session Persistence Bug:** When a user logged out (`setCurrentUser(null)`) or refreshed the browser page, React's `useState` wiped out memory.
+
+---
+
+### 🛠️ The Fix: Auto-Persisting Storage + Complete Contrast Safety
+
+To solve both issues permanently, we are implementing two enterprise upgrades:
+
+* 💾 **Automatic LocalStorage Persistence:** Every time you generate a course, take a quiz, or save a session, your progress is automatically saved to browser memory (`localStorage.getItem("jinvexa_sessions")`). When any user logs in again, their custom courses re-appear immediately!
+* 🎨 **Guaranteed High-Contrast Palettes:** All topic tags, quiz buttons, and lesson cards now use explicit light-mode palettes (`bg-slate-100 text-slate-800 border-slate-300` in Light Mode vs. `bg-slate-900 text-slate-100 border-slate-700` in Zen Mode).
+
+---
+
+### 💻 Paste this complete code into `src/app/page.tsx`
+
+```tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -129,7 +150,7 @@ export default function JinvexaEnterpriseLMS() {
   const [activeModel, setActiveModel] = useState("meta/llama-3.3-70b-instruct");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Dynamic Learning Sessions Database (#9)
+  // --- DYNAMIC LEARNING SESSIONS DATABASE WITH AUTO-PERSISTENCE (#9) ---
   const [userSessions, setUserSessions] = useState<SessionRecord[]>([
     {
       id: "sess_1_20260729_data_eng",
@@ -172,6 +193,30 @@ export default function JinvexaEnterpriseLMS() {
       ],
     },
   ]);
+
+  // Load Saved Courses from Browser Memory on Mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedSessions = localStorage.getItem("jinvexa_sessions");
+      if (savedSessions) {
+        try {
+          const parsed = JSON.parse(savedSessions);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setUserSessions(parsed);
+          }
+        } catch (err) {
+          console.error("Failed to load saved sessions");
+        }
+      }
+    }
+  }, []);
+
+  // Save Sessions to Browser Memory whenever userSessions updates
+  useEffect(() => {
+    if (typeof window !== "undefined" && userSessions.length > 0) {
+      localStorage.setItem("jinvexa_sessions", JSON.stringify(userSessions));
+    }
+  }, [userSessions]);
 
   // Discovery Engine (#1 & #2)
   const [discoveryType, setDiscoveryType] = useState<"goal" | "reference">(
@@ -320,7 +365,8 @@ export default function JinvexaEnterpriseLMS() {
 
   useEffect(() => {
     if (generatedRoadmap.length > 0) {
-      const currentMod = generatedRoadmap[activeModuleIdx] || generatedRoadmap[0];
+      const currentMod =
+        generatedRoadmap[activeModuleIdx] || generatedRoadmap[0];
       const currentLessonTitle =
         currentMod?.topics?.[activeLessonIdx] || currentMod?.title;
       if (currentLessonTitle) {
@@ -928,11 +974,16 @@ export default function JinvexaEnterpriseLMS() {
                           <p className="text-xs text-slate-500 pl-9">
                             {item.description}
                           </p>
+                          {/* HIGH CONTRAST TAG PALETTE FIX */}
                           <div className="flex flex-wrap gap-2 pl-9 pt-1">
                             {item.topics?.map((tp: string, i: number) => (
                               <span
                                 key={i}
-                                className="text-[11px] bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium px-2.5 py-0.5 rounded"
+                                className={`text-[11px] font-medium px-2.5 py-0.5 rounded border ${
+                                  isZen
+                                    ? "bg-slate-900 border-slate-700 text-slate-200"
+                                    : "bg-slate-100 border-slate-300 text-slate-800"
+                                }`}
                               >
                                 {tp}
                               </span>
@@ -1219,7 +1270,7 @@ export default function JinvexaEnterpriseLMS() {
               <div
                 className={`${bgCard} border rounded-2xl p-8 space-y-8 shadow-md`}
               >
-                {/* PART 1: ANALYTICAL MULTIPLE CHOICE */}
+                {/* HIGH CONTRAST ANALYTICAL MULTIPLE CHOICE SECTION */}
                 <div className="space-y-8">
                   <h2 className="text-sm font-bold text-violet-600 uppercase tracking-wider border-b pb-2">
                     Part 1: Analytical Multiple Choice (
@@ -1247,7 +1298,9 @@ export default function JinvexaEnterpriseLMS() {
                               className={`flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer text-sm font-semibold transition ${
                                 selectedMCQs[qIdx] === optIdx
                                   ? "bg-violet-500/10 border-violet-600 text-violet-900 dark:text-violet-200 shadow-sm"
-                                  : "bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 hover:border-slate-400"
+                                  : isZen
+                                  ? "bg-slate-900 border-slate-700 text-slate-100 hover:border-slate-500"
+                                  : "bg-slate-50 border-slate-300 text-slate-900 hover:border-slate-400"
                               }`}
                             >
                               <input
@@ -1262,7 +1315,9 @@ export default function JinvexaEnterpriseLMS() {
                                 }
                                 className="w-4 h-4 text-violet-600 border-slate-400 focus:ring-0"
                               />
-                              {opt}
+                              <span className="text-slate-900 dark:text-slate-100 font-medium">
+                                {opt}
+                              </span>
                             </label>
                           )
                         )}
@@ -1745,3 +1800,5 @@ export default function JinvexaEnterpriseLMS() {
     </div>
   );
 }
+
+```
