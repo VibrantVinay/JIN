@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  // Declare default variables at the top scope so the catch block can safely access them!
-  let topic = "Enterprise Technical Track";
-  let lessonTitle = "Module Overview";
+  let topic = "Professional Specialization Track";
+  let lessonTitle = "Core Technical Module";
 
   try {
     const body = await req.json();
@@ -15,64 +14,100 @@ export async function POST(req: Request) {
       process.env.NVIDIA_API_KEY ||
       process.env.OPENROUTER_API_KEY;
 
-    const fallbackLesson = {
-      content: `# Complete Study Guide: ${lessonTitle}
-**Specialization:** ${topic}
+    // GUARANTEED DEEP LONG-FORM TEXTBOOK CHAPTER (No more short summaries!)
+    const deepLongFormLesson = {
+      content: `# Complete University Study Guide: ${lessonTitle}
+**Specialization Track:** ${topic}
 
 ---
 
-## 1. Deep Theoretical & Mathematical Foundations
-In professional engineering environments, mastering **${lessonTitle}** requires a rigorous understanding of its underlying mechanical and computational principles. Rather than relying on superficial abstractions, robust systems engineering examines how data structures, state transitions, and memory allocations behave under high-concurrency loads.
+## 1. Deep Theoretical & Operational Foundations
+In professional engineering and mechanical environments, mastering **${lessonTitle}** requires a rigorous understanding of its underlying physical, mechanical, and computational principles. Rather than relying on superficial abstractions, robust systems engineering examines how mechanical components, data structures, state transitions, and load tolerances behave under extreme real-world stress.
 
-### Key Architectural Constraints
-1. **Deterministic vs. Probabilistic Behavior:** Systems must be designed to handle both predictable input schemas and stochastic edge cases without dropping availability.
-2. **Throughput and Latency Optimization:** By minimizing I/O bottlenecks and optimizing cache locality, enterprise pipelines achieve sub-millisecond response times.
-3. **Fault Tolerance and Recovery:** Implementing idempotent operations and dead-letter queues ensures zero data loss during node failures.
+### Key Operational Principles
+1. **Deterministic vs. Stochastic Behavior:** Professional systems must be engineered to handle both predictable operating conditions and unexpected environmental variance without catastrophic failure.
+2. **Thermal, Mechanical, and Computational Stress:** Whether calibrating combustion timing in an engine or managing high-concurrency data pipelines, understanding stress tolerances prevents premature component degradation.
+3. **Safety, Governance, and Precision Calibration:** Strict adherence to calibrated torque specs, voltage thresholds, and error-handling protocols ensures zero failure during mission-critical operations.
 
 ---
 
-## 2. Practical Syntax, Implementation & Code Workflows
-To implement **${lessonTitle}** in production, engineers utilize standardized design patterns. Below is an architectural reference model demonstrating how components interact:
+## 2. Advanced Component Architecture & System Workflow
+To execute **${lessonTitle}** at a professional standard, technicians and engineers follow standardized diagnostic and operational workflows. Below is a structured architectural reference model illustrating component interaction:
 
 \`\`\`text
-[Client Request] --> (API Gateway / Load Balancer)
-                           |
-            +--------------+--------------+
-            v                             v
-  [Stateless Worker A]          [Stateless Worker B]
-            |                             |
-            +--------------+--------------+
-                           v
-              (Distributed Write-Ahead Log)
+[Primary Input / Power Source] ----> (Regulation & Filtration Unit)
+                                            |
+                 +--------------------------+--------------------------+
+                 v                                                     v
+      [Primary Subsystem A]                                 [Primary Subsystem B]
+    (Mechanical / Logic Execution)                        (Monitoring / Feedback Loop)
+                 |                                                     |
+                 +--------------------------+--------------------------+
+                                            v
+                               [Calibrated System Output]
 \`\`\`
 
-### Production Implementation Rules
-* Never block the primary event loop when executing heavy computational transformations.
-* Always decouple ingestion from storage using asynchronous buffering layers.
+### Production & Diagnostic Maintenance Rules
+* **Rule 1 — Systematic Isolation:** When diagnosing faults in **${lessonTitle}**, always test individual subsystems independently before replacing primary components.
+* **Rule 2 — Baseline Verification:** Never assume factory defaults; always verify live operating telemetry (voltage, pressure, or latency) against official technical manuals.
+* **Rule 3 — Preventive Maintenance Intervals:** Schedule routine calibration and inspection cycles based on operational hours and workload intensity.
 
 ---
 
-## 3. Real-World Case Study & Production Verification
-Consider a high-frequency financial trading platform or an autonomous robotics control loop implementing **${lessonTitle}**. During peak market volatility or rapid sensor drift, the architecture must automatically scale horizontally while preserving strict sequential ordering.`,
+## 3. Step-by-Step Practical Implementation Guide
+When working with **${lessonTitle}** in the field, execute the following industry-standard procedure:
+
+1. **Initial Inspection & Safety Lockout:**
+   * Isolate the system from primary power or fuel sources.
+   * Inspect visual indicators for wear, leaks, corrosion, or signal distortion.
+2. **Diagnostic Telemetry & Testing:**
+   * Attach calibrated diagnostic equipment (e.g., OBD-II scanners, multimeters, or logging profilers).
+   * Record baseline error codes or performance drop-offs.
+3. **Component Alignment & Execution:**
+   * Replace or adjust the target assembly according to manufacturer specifications.
+   * Apply exact torque or configuration parameters to prevent over-stressing.
+
+---
+
+## 4. Real-World Diagnostic Case Study & Failure Analysis
+Consider an enterprise scenario where **${lessonTitle}** exhibits intermittent operational failure under heavy load. 
+
+### The Diagnostic Challenge
+An operator reports that during peak output, the system experiences unexpected drop-outs and thermal spiking. Preliminary quick-scans reveal no obvious external breakage.
+
+### The Root-Cause Investigation
+1. Engineers perform a deep-dive trace into the feedback loop.
+2. They discover that a secondary regulation valve/sensor was lagging by 15 milliseconds due to particulate buildup, causing upstream pressure spikes.
+3. **Resolution:** Cleaning the sensor interface and updating the calibration tables restored full system efficiency and reduced operating temperatures by 18%.
+
+---
+
+## 5. Module Summary & Mastery Checklist
+Before proceeding to your graded module assessment, ensure you can confidently explain:
+* [x] The primary operational mechanics of **${lessonTitle}**.
+* [x] How to systematically isolate and diagnose faults using structured testing models.
+* [x] Industry-standard safety and calibration procedures required for long-term reliability.`,
     };
 
     if (!apiKey) {
-      return NextResponse.json(fallbackLesson);
+      return NextResponse.json(deepLongFormLesson);
     }
 
-    const systemPrompt = `You are Jinvexa Distinguished Professor of Engineering. Write a deeply comprehensive, advanced, 500-to-800-word university study guide for:
+    const systemPrompt = `You are Jinvexa Distinguished Professor. Write an extensive, deeply detailed, 800-to-1200-word university study guide for:
     Specialization: "${topic}"
     Lesson Title: "${lessonTitle}"
 
-    Your response MUST include:
-    1. A deep theoretical explanation of core mechanics, mathematics, and architectural trade-offs.
-    2. A structured text-based architecture diagram or ASCII chart.
-    3. Practical engineering implementation rules and clean code/syntax examples.
-    4. A real-world production case study analyzing edge cases and failure modes.
-    Use rich Markdown formatting (H2/H3 headings, bold text, bullet points, and code blocks).`;
+    Your response MUST be long-form and comprehensive, structured into these exact 5 Markdown sections:
+    1. # Deep Theoretical & Operational Foundations
+    2. # Advanced Component Architecture & System Workflow (include an ASCII diagram)
+    3. # Step-by-Step Practical Implementation Guide
+    4. # Real-World Diagnostic Case Study & Failure Analysis
+    5. # Module Summary & Mastery Checklist
+    
+    Use rich Markdown formatting (bold text, bullet points, numbered lists, and code blocks).`;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 9000);
 
     const apiUrl = process.env.GROQ_API_KEY
       ? "https://api.groq.com/openai/v1/chat/completions"
@@ -97,24 +132,23 @@ Consider a high-frequency financial trading platform or an autonomous robotics c
         model: modelName,
         messages: [{ role: "system", content: systemPrompt }],
         temperature: 0.3,
-        max_tokens: 1500,
+        max_tokens: 2500,
       }),
     });
 
     clearTimeout(timeoutId);
 
-    if (!res.ok) return NextResponse.json(fallbackLesson);
+    if (!res.ok) return NextResponse.json(deepLongFormLesson);
 
     const data = await res.json();
     const content = data?.choices?.[0]?.message?.content;
 
     return NextResponse.json({
-      content: content || fallbackLesson.content,
+      content: content || deepLongFormLesson.content,
     });
   } catch (error) {
-    // Both topic and lessonTitle are now safely defined in the parent function scope!
     return NextResponse.json({
-      content: `# Comprehensive Study Guide: ${lessonTitle}\n\nWelcome to your advanced lesson in **${topic}**.\n\n### 1. Architectural Foundations\nMastering this concept requires evaluating latency, throughput, and system reliability under load.\n\n### 2. Implementation Workflow\nAlways decouple state transformations from ingestion layers to ensure horizontal scalability.`,
+      content: `# Complete University Study Guide: ${lessonTitle}\n**Specialization Track:** ${topic}\n\n---\n\n## 1. Deep Theoretical & Operational Foundations\nIn professional engineering and mechanical environments, mastering **${lessonTitle}** requires a rigorous understanding of its underlying physical, mechanical, and computational principles.\n\n### Key Operational Principles\n1. **Deterministic vs. Stochastic Behavior:** Systems must be engineered to handle both predictable operating conditions and unexpected environmental variance.\n2. **Stress Tolerances:** Understanding stress tolerances prevents premature component degradation.\n\n---\n\n## 2. Advanced Component Architecture & System Workflow\nTo execute **${lessonTitle}** at a professional standard, technicians follow standardized diagnostic workflows.\n\n\`\`\`text\n[Input Source] ---> (Filtration Unit) ---> [Primary Subsystem] ---> [Calibrated Output]\n\`\`\`\n\n---\n\n## 3. Step-by-Step Practical Implementation Guide\n1. **Initial Inspection & Safety Lockout:** Isolate the system from primary power sources.\n2. **Diagnostic Testing:** Attach calibrated diagnostic equipment and record baseline codes.\n3. **Component Execution:** Adjust the target assembly according to manufacturer specifications.\n\n---\n\n## 4. Real-World Case Study\nConsider an enterprise scenario where **${lessonTitle}** exhibits intermittent failure under load. Systematically isolating subsystems allows operators to resolve root-cause latency without replacing primary components.`,
     });
   }
 }
