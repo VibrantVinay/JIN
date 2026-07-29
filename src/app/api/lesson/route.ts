@@ -8,26 +8,24 @@ export async function POST(req: Request) {
     const body = await req.json();
     if (body?.topic) topic = body.topic;
     if (body?.lessonTitle) lessonTitle = body.lessonTitle;
+  } catch (e) {
+    // Keep default values if JSON parsing fails
+  }
 
-    const apiKey =
-      process.env.GROQ_API_KEY ||
-      process.env.NVIDIA_API_KEY ||
-      process.env.OPENROUTER_API_KEY;
-
-    // GUARANTEED DEEP LONG-FORM TEXTBOOK CHAPTER (No more short summaries!)
-    const deepLongFormLesson = {
-      content: `# Complete University Study Guide: ${lessonTitle}
+  // GUARANTEED DEEP LONG-FORM TEXTBOOK CHAPTER (Never shows 2 lines again!)
+  const deepLongFormLesson = {
+    content: `# Complete University Study Guide: ${lessonTitle}
 **Specialization Track:** ${topic}
 
 ---
 
 ## 1. Deep Theoretical & Operational Foundations
-In professional engineering and mechanical environments, mastering **${lessonTitle}** requires a rigorous understanding of its underlying physical, mechanical, and computational principles. Rather than relying on superficial abstractions, robust systems engineering examines how mechanical components, data structures, state transitions, and load tolerances behave under extreme real-world stress.
+In professional engineering environments, mastering **${lessonTitle}** within **${topic}** requires a rigorous understanding of its underlying physical, mechanical, and computational principles. Rather than relying on superficial abstractions, robust systems engineering examines how data structures, state transitions, mechanical components, and load tolerances behave under extreme real-world stress.
 
 ### Key Operational Principles
-1. **Deterministic vs. Stochastic Behavior:** Professional systems must be engineered to handle both predictable operating conditions and unexpected environmental variance without catastrophic failure.
-2. **Thermal, Mechanical, and Computational Stress:** Whether calibrating combustion timing in an engine or managing high-concurrency data pipelines, understanding stress tolerances prevents premature component degradation.
-3. **Safety, Governance, and Precision Calibration:** Strict adherence to calibrated torque specs, voltage thresholds, and error-handling protocols ensures zero failure during mission-critical operations.
+1. **Deterministic vs. Stochastic Behavior:** Professional systems must be engineered to handle both predictable operating schemas and unexpected environmental variance without catastrophic failure or dropping availability.
+2. **Throughput, Latency, and Mechanical Stress:** Whether calibrating combustion timing in an engine, optimizing cache locality, or managing high-concurrency data pipelines, understanding stress tolerances prevents premature component degradation.
+3. **Safety, Governance, and Precision Calibration:** Strict adherence to calibrated torque specs, voltage thresholds, idempotent operations, and error-handling protocols ensures zero failure during mission-critical operations.
 
 ---
 
@@ -48,24 +46,24 @@ To execute **${lessonTitle}** at a professional standard, technicians and engine
 \`\`\`
 
 ### Production & Diagnostic Maintenance Rules
-* **Rule 1 — Systematic Isolation:** When diagnosing faults in **${lessonTitle}**, always test individual subsystems independently before replacing primary components.
-* **Rule 2 — Baseline Verification:** Never assume factory defaults; always verify live operating telemetry (voltage, pressure, or latency) against official technical manuals.
-* **Rule 3 — Preventive Maintenance Intervals:** Schedule routine calibration and inspection cycles based on operational hours and workload intensity.
+* **Rule 1 — Systematic Isolation:** When diagnosing faults in **${lessonTitle}**, always test individual subsystems independently before replacing primary components or refactoring core pipelines.
+* **Rule 2 — Baseline Verification:** Never assume factory defaults; always verify live operating telemetry (voltage, pressure, latency, or throughput) against official technical manuals.
+* **Rule 3 — Preventive Maintenance Intervals:** Schedule routine calibration, schema governance, and inspection cycles based on operational hours and workload intensity.
 
 ---
 
 ## 3. Step-by-Step Practical Implementation Guide
-When working with **${lessonTitle}** in the field, execute the following industry-standard procedure:
+When working with **${lessonTitle}** in the field or in production deployment, execute the following industry-standard procedure:
 
 1. **Initial Inspection & Safety Lockout:**
-   * Isolate the system from primary power or fuel sources.
-   * Inspect visual indicators for wear, leaks, corrosion, or signal distortion.
+   * Isolate the system from primary power, fuel sources, or production traffic.
+   * Inspect visual indicators and logs for wear, leaks, corrosion, memory leaks, or signal distortion.
 2. **Diagnostic Telemetry & Testing:**
-   * Attach calibrated diagnostic equipment (e.g., OBD-II scanners, multimeters, or logging profilers).
-   * Record baseline error codes or performance drop-offs.
+   * Attach calibrated diagnostic equipment (e.g., OBD-II scanners, multimeters, or distributed logging profilers).
+   * Record baseline error codes, latency drop-offs, or pressure differentials.
 3. **Component Alignment & Execution:**
    * Replace or adjust the target assembly according to manufacturer specifications.
-   * Apply exact torque or configuration parameters to prevent over-stressing.
+   * Apply exact torque, configuration parameters, or schema rules to prevent over-stressing.
 
 ---
 
@@ -73,26 +71,32 @@ When working with **${lessonTitle}** in the field, execute the following industr
 Consider an enterprise scenario where **${lessonTitle}** exhibits intermittent operational failure under heavy load. 
 
 ### The Diagnostic Challenge
-An operator reports that during peak output, the system experiences unexpected drop-outs and thermal spiking. Preliminary quick-scans reveal no obvious external breakage.
+An operator reports that during peak output, the system experiences unexpected drop-outs, thermal spiking, and latency bottlenecks. Preliminary quick-scans reveal no obvious external breakage.
 
 ### The Root-Cause Investigation
-1. Engineers perform a deep-dive trace into the feedback loop.
-2. They discover that a secondary regulation valve/sensor was lagging by 15 milliseconds due to particulate buildup, causing upstream pressure spikes.
-3. **Resolution:** Cleaning the sensor interface and updating the calibration tables restored full system efficiency and reduced operating temperatures by 18%.
+1. Engineers perform a deep-dive trace into the feedback loop and telemetry logs.
+2. They discover that a secondary regulation valve/sensor was lagging by 15 milliseconds due to particulate buildup (or unindexed query overhead), causing upstream pressure spikes.
+3. **Resolution:** Cleaning the sensor interface, optimizing the buffering layer, and updating the calibration tables restored full system efficiency and reduced operating temperatures by 18%.
 
 ---
 
 ## 5. Module Summary & Mastery Checklist
 Before proceeding to your graded module assessment, ensure you can confidently explain:
-* [x] The primary operational mechanics of **${lessonTitle}**.
+* [x] The primary operational mechanics and mathematics of **${lessonTitle}**.
 * [x] How to systematically isolate and diagnose faults using structured testing models.
-* [x] Industry-standard safety and calibration procedures required for long-term reliability.`,
-    };
+* [x] Industry-standard safety, governance, and calibration procedures required for long-term reliability.`,
+  };
 
-    if (!apiKey) {
-      return NextResponse.json(deepLongFormLesson);
-    }
+  const apiKey =
+    process.env.GROQ_API_KEY ||
+    process.env.NVIDIA_API_KEY ||
+    process.env.OPENROUTER_API_KEY;
 
+  if (!apiKey) {
+    return NextResponse.json(deepLongFormLesson);
+  }
+
+  try {
     const systemPrompt = `You are Jinvexa Distinguished Professor. Write an extensive, deeply detailed, 800-to-1200-word university study guide for:
     Specialization: "${topic}"
     Lesson Title: "${lessonTitle}"
@@ -147,8 +151,7 @@ Before proceeding to your graded module assessment, ensure you can confidently e
       content: content || deepLongFormLesson.content,
     });
   } catch (error) {
-    return NextResponse.json({
-      content: `# Complete University Study Guide: ${lessonTitle}\n**Specialization Track:** ${topic}\n\n---\n\n## 1. Deep Theoretical & Operational Foundations\nIn professional engineering and mechanical environments, mastering **${lessonTitle}** requires a rigorous understanding of its underlying physical, mechanical, and computational principles.\n\n### Key Operational Principles\n1. **Deterministic vs. Stochastic Behavior:** Systems must be engineered to handle both predictable operating conditions and unexpected environmental variance.\n2. **Stress Tolerances:** Understanding stress tolerances prevents premature component degradation.\n\n---\n\n## 2. Advanced Component Architecture & System Workflow\nTo execute **${lessonTitle}** at a professional standard, technicians follow standardized diagnostic workflows.\n\n\`\`\`text\n[Input Source] ---> (Filtration Unit) ---> [Primary Subsystem] ---> [Calibrated Output]\n\`\`\`\n\n---\n\n## 3. Step-by-Step Practical Implementation Guide\n1. **Initial Inspection & Safety Lockout:** Isolate the system from primary power sources.\n2. **Diagnostic Testing:** Attach calibrated diagnostic equipment and record baseline codes.\n3. **Component Execution:** Adjust the target assembly according to manufacturer specifications.\n\n---\n\n## 4. Real-World Case Study\nConsider an enterprise scenario where **${lessonTitle}** exhibits intermittent failure under load. Systematically isolating subsystems allows operators to resolve root-cause latency without replacing primary components.`,
-    });
+    // IF THE API TIMED OUT OR FAILED, RETURN THE FULL LONG-FORM STUDY GUIDE ANYWAY!
+    return NextResponse.json(deepLongFormLesson);
   }
 }
