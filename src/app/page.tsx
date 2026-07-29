@@ -153,7 +153,8 @@ export default function JinvexaEnterpriseLMS() {
             "Distributed Storage & Retrieval Schemas",
             "Data Quality, Lineage and Governance",
           ],
-          description: "Comprehensive introduction to big data pipelines and distributed storage.",
+          description:
+            "Comprehensive introduction to big data pipelines and distributed storage.",
         },
         {
           phase: 2,
@@ -165,14 +166,17 @@ export default function JinvexaEnterpriseLMS() {
             "ETL vs ELT Workflows and Transformations",
             "Data Security, Encryption and Compliance",
           ],
-          description: "Deep technical dive into enterprise cloud warehouses and stream processing.",
+          description:
+            "Deep technical dive into enterprise cloud warehouses and stream processing.",
         },
       ],
     },
   ]);
 
   // Discovery Engine (#1 & #2)
-  const [discoveryType, setDiscoveryType] = useState<"goal" | "reference">("goal");
+  const [discoveryType, setDiscoveryType] = useState<"goal" | "reference">(
+    "goal"
+  );
   const [goalInput, setGoalInput] = useState("");
   const [referenceUrl, setReferenceUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -206,9 +210,13 @@ export default function JinvexaEnterpriseLMS() {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   // Assignment Layer & Graded Quizzes (#4)
-  const [assignmentData, setAssignmentData] = useState<QuizPayload | null>(null);
+  const [assignmentData, setAssignmentData] = useState<QuizPayload | null>(
+    null
+  );
   const [isLoadingAssignment, setIsLoadingAssignment] = useState(false);
-  const [selectedMCQs, setSelectedMCQs] = useState<{ [key: number]: number }>({});
+  const [selectedMCQs, setSelectedMCQs] = useState<{ [key: number]: number }>(
+    {}
+  );
   const [essayTexts, setEssayTexts] = useState<{ [key: number]: string }>({});
   const [evalResult, setEvalResult] = useState<any>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
@@ -220,7 +228,9 @@ export default function JinvexaEnterpriseLMS() {
 
   // --- THEME UTILITY CLASSES ---
   const isZen = themeMode === "zen";
-  const bgMain = isZen ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900";
+  const bgMain = isZen
+    ? "bg-slate-950 text-slate-100"
+    : "bg-slate-50 text-slate-900";
   const bgCard = isZen
     ? "bg-slate-900/95 border-slate-800 text-slate-100"
     : "bg-white border-slate-200 text-slate-900";
@@ -331,7 +341,6 @@ export default function JinvexaEnterpriseLMS() {
       setIsPlayingAudio(false);
       setAudioProgress(0);
     } else {
-      // Strip markdown characters so speech sounds natural
       const plainText = currentLessonText
         .replace(/#/g, "")
         .replace(/\*/g, "")
@@ -458,8 +467,12 @@ export default function JinvexaEnterpriseLMS() {
   // --- 1. LIGHT MODE DEFAULT LOGIN SCREEN ---
   if (!currentUser) {
     return (
-      <div className={`min-h-screen ${bgMain} flex flex-col justify-center items-center p-4 font-sans`}>
-        <div className={`w-full max-w-md ${bgCard} border rounded-2xl p-8 shadow-xl space-y-6`}>
+      <div
+        className={`min-h-screen ${bgMain} flex flex-col justify-center items-center p-4 font-sans`}
+      >
+        <div
+          className={`w-full max-w-md ${bgCard} border rounded-2xl p-8 shadow-xl space-y-6`}
+        >
           <div className="flex flex-col items-center text-center space-y-2">
             <div className="p-3 bg-violet-600 rounded-xl shadow-md text-white">
               <GraduationCap className="w-8 h-8" />
@@ -513,10 +526,12 @@ export default function JinvexaEnterpriseLMS() {
 
           <div className="pt-4 border-t border-slate-200/50 text-[11px] text-slate-500 text-center space-y-1">
             <p>
-              Demo Learner: <span className="font-mono font-bold">alice / alice123</span>
+              Demo Learner:{" "}
+              <span className="font-mono font-bold">alice / alice123</span>
             </p>
             <p>
-              Demo Admin: <span className="font-mono font-bold">admin / admin123</span>
+              Demo Admin:{" "}
+              <span className="font-mono font-bold">admin / admin123</span>
             </p>
           </div>
         </div>
@@ -526,7 +541,9 @@ export default function JinvexaEnterpriseLMS() {
 
   // --- 2. MAIN 14-FUNCTIONALITY ENTERPRISE LMS LAYOUT ---
   return (
-    <div className={`min-h-screen ${bgMain} flex flex-col font-sans transition-colors duration-300`}>
+    <div
+      className={`min-h-screen ${bgMain} flex flex-col font-sans transition-colors duration-300`}
+    >
       {/* HEADER NAVBAR */}
       <header
         className={`h-16 border-b ${
@@ -685,9 +702,16 @@ export default function JinvexaEnterpriseLMS() {
                 <span className="text-xs font-bold uppercase tracking-wider text-violet-600 bg-violet-500/10 px-2.5 py-1 rounded border border-violet-500/20">
                   Active Degree Track: {activeCourseTitle}
                 </span>
-                <h1 className="text-3xl font-extrabold">Welcome back, {currentUser.username}</h1>
-                <p className={`text-sm max-w-xl ${isZen ? "text-slate-300" : "text-slate-600"}`}>
-                  Your autonomous curriculum is live. Continue your active lectures or design a new specialized career track.
+                <h1 className="text-3xl font-extrabold">
+                  Welcome back, {currentUser.username}
+                </h1>
+                <p
+                  className={`text-sm max-w-xl ${
+                    isZen ? "text-slate-300" : "text-slate-600"
+                  }`}
+                >
+                  Your autonomous curriculum is live. Continue your active
+                  lectures or design a new specialized career track.
                 </p>
               </div>
               <button
@@ -700,54 +724,81 @@ export default function JinvexaEnterpriseLMS() {
 
             <div className="space-y-4">
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-violet-600" /> Active Learning Tracks (
-                {userSessions.length})
+                <BookOpen className="w-5 h-5 text-violet-600" /> Active Learning
+                Tracks ({userSessions.length})
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {userSessions.map((sess, idx) => (
-                  <div
-                    key={idx}
-                    className={`${bgCard} border rounded-xl p-6 flex flex-col justify-between space-y-6 shadow-sm transition`}
+              {userSessions.length === 0 ? (
+                <div
+                  className={`${bgCard} border rounded-xl p-8 text-center space-y-3 shadow-sm`}
+                >
+                  <p className="text-sm font-medium text-slate-500">
+                    No active specializations created yet.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab("discovery")}
+                    className="bg-violet-600 text-white font-semibold px-5 py-2 rounded-xl text-xs"
                   >
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center text-xs text-slate-500 font-medium">
-                        <span>{sess.mode} Course</span>
-                        <span className="text-violet-600 font-bold bg-violet-500/10 px-2 py-0.5 rounded">
-                          {sess.status}
+                    Create Your First Specialization
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {userSessions.map((sess, idx) => (
+                    <div
+                      key={idx}
+                      className={`${bgCard} border rounded-xl p-6 flex flex-col justify-between space-y-6 shadow-sm transition`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-xs text-slate-500 font-medium">
+                          <span>{sess.mode} Course</span>
+                          <span className="text-violet-600 font-bold bg-violet-500/10 px-2 py-0.5 rounded">
+                            {sess.status}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-bold">{sess.topic}</h3>
+                        <p className="text-xs text-slate-500 font-mono">
+                          ID: {sess.id}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs font-semibold">
+                          <span>Overall Completion</span>
+                          <span className="text-violet-600">
+                            {sess.progress}
+                          </span>
+                        </div>
+                        <div className="w-full h-2 bg-slate-200/50 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-violet-600 rounded-full"
+                            style={{ width: sess.progress }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-slate-200/50 flex justify-between items-center">
+                        <span className="text-xs text-slate-500 font-medium">
+                          Lessons: {sess.lessonsGenerated} • Audio:{" "}
+                          {sess.audioFiles}
                         </span>
-                      </div>
-                      <h3 className="text-lg font-bold">{sess.topic}</h3>
-                      <p className="text-xs text-slate-500 font-mono">ID: {sess.id}</p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs font-semibold">
-                        <span>Overall Completion</span>
-                        <span className="text-violet-600">{sess.progress}</span>
-                      </div>
-                      <div className="w-full h-2 bg-slate-200/50 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-violet-600 rounded-full"
-                          style={{ width: sess.progress }}
-                        />
+                        <button
+                          onClick={() =>
+                            handleContinueConversation(
+                              sess.topic,
+                              sess.roadmap
+                            )
+                          }
+                          className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
+                        >
+                          Open Classroom{" "}
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                        </button>
                       </div>
                     </div>
-
-                    <div className="pt-4 border-t border-slate-200/50 flex justify-between items-center">
-                      <span className="text-xs text-slate-500 font-medium">
-                        Lessons: {sess.lessonsGenerated} • Audio: {sess.audioFiles}
-                      </span>
-                      <button
-                        onClick={() => handleContinueConversation(sess.topic, sess.roadmap)}
-                        className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
-                      >
-                        Open Classroom <Play className="w-3.5 h-3.5 fill-current" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -761,9 +812,12 @@ export default function JinvexaEnterpriseLMS() {
               <span className="text-xs font-bold uppercase tracking-widest text-violet-600">
                 Autonomous University Builder
               </span>
-              <h1 className="text-3xl font-extrabold">How do you want to learn today?</h1>
+              <h1 className="text-3xl font-extrabold">
+                How do you want to learn today?
+              </h1>
               <p className="text-sm text-slate-500">
-                Choose between entering a career goal or providing reference documentation.
+                Choose between entering a career goal or providing reference
+                documentation.
               </p>
 
               <div className="inline-flex p-1 bg-slate-200/60 dark:bg-slate-900 border rounded-xl gap-1 mt-4">
@@ -821,7 +875,9 @@ export default function JinvexaEnterpriseLMS() {
                 ) : (
                   <Sparkles className="w-4 h-4" />
                 )}
-                {isAnalyzing ? "Building Curriculum..." : "Generate Specialization"}
+                {isAnalyzing
+                  ? "Building Curriculum..."
+                  : "Generate Specialization"}
               </button>
             </div>
 
@@ -834,10 +890,12 @@ export default function JinvexaEnterpriseLMS() {
                     <span className="text-xs text-violet-600 font-bold uppercase tracking-wider">
                       Generated Specialization ({discoveryType.toUpperCase()})
                     </span>
-                    <h2 className="text-2xl font-bold mt-1">{activeCourseTitle}</h2>
+                    <h2 className="text-2xl font-bold mt-1">
+                      {activeCourseTitle}
+                    </h2>
                     <p className="text-xs text-slate-500 mt-1">
-                      {generatedRoadmap.length} Modules • Complete all phases to unlock your Degree
-                      Certificate.
+                      {generatedRoadmap.length} Modules • Complete all phases
+                      to unlock your Degree Certificate.
                     </p>
                   </div>
                   <button
@@ -863,9 +921,13 @@ export default function JinvexaEnterpriseLMS() {
                             <span className="w-6 h-6 rounded-full bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-violet-600 font-bold text-xs">
                               {item.phase}
                             </span>
-                            <h4 className="font-bold text-base">{item.title}</h4>
+                            <h4 className="font-bold text-base">
+                              {item.title}
+                            </h4>
                           </div>
-                          <p className="text-xs text-slate-500 pl-9">{item.description}</p>
+                          <p className="text-xs text-slate-500 pl-9">
+                            {item.description}
+                          </p>
                           <div className="flex flex-wrap gap-2 pl-9 pt-1">
                             {item.topics?.map((tp: string, i: number) => (
                               <span
@@ -910,14 +972,18 @@ export default function JinvexaEnterpriseLMS() {
             <aside
               className={`w-80 border-r ${
                 isZen ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"
-              } flex flex-col transition-all ${sidebarOpen ? "block" : "hidden"}`}
+              } flex flex-col transition-all ${
+                sidebarOpen ? "block" : "hidden"
+              }`}
             >
               <div className="p-4 border-b border-slate-200/50 bg-slate-50 dark:bg-slate-950 flex justify-between items-center">
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Course Syllabus
                   </h3>
-                  <p className="text-sm font-bold truncate w-56">{activeCourseTitle}</p>
+                  <p className="text-sm font-bold truncate w-56">
+                    {activeCourseTitle}
+                  </p>
                 </div>
               </div>
 
@@ -928,12 +994,20 @@ export default function JinvexaEnterpriseLMS() {
                       {
                         phase: 1,
                         title: "Module 1: Foundations of " + activeCourseTitle,
-                        topics: ["Core Theory", "Syntax & Logic", "System Architecture"],
+                        topics: [
+                          "Core Theory",
+                          "Syntax & Logic",
+                          "System Architecture",
+                        ],
                       },
                       {
                         phase: 2,
                         title: "Module 2: Advanced " + activeCourseTitle,
-                        topics: ["Engineering Workflows", "Optimization", "Deployment"],
+                        topics: [
+                          "Engineering Workflows",
+                          "Optimization",
+                          "Deployment",
+                        ],
                       },
                     ]
                 ).map((mod, modIdx) => (
@@ -945,7 +1019,8 @@ export default function JinvexaEnterpriseLMS() {
                     <div className="space-y-1 pt-1">
                       {mod.topics?.map((topTitle: string, lesIdx: number) => {
                         const isCurrent =
-                          activeModuleIdx === modIdx && activeLessonIdx === lesIdx;
+                          activeModuleIdx === modIdx &&
+                          activeLessonIdx === lesIdx;
                         return (
                           <div
                             key={lesIdx}
@@ -980,27 +1055,32 @@ export default function JinvexaEnterpriseLMS() {
             <div className={`flex-1 flex flex-col ${bgMain} overflow-y-auto`}>
               <div className="p-6 max-w-4xl mx-auto w-full space-y-6">
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                  <span>Specialization</span> <ChevronRight className="w-3.5 h-3.5" />
+                  <span>Specialization</span>{" "}
+                  <ChevronRight className="w-3.5 h-3.5" />
                   <span>
-                    {generatedRoadmap[activeModuleIdx]?.title || "Active Module"}
+                    {generatedRoadmap[activeModuleIdx]?.title ||
+                      "Active Module"}
                   </span>{" "}
                   <ChevronRight className="w-3.5 h-3.5" />
                   <span className="text-violet-600 font-semibold">
-                    {generatedRoadmap[activeModuleIdx]?.topics?.[activeLessonIdx] ||
-                      "Active Lesson"}
+                    {generatedRoadmap[activeModuleIdx]?.topics?.[
+                      activeLessonIdx
+                    ] || "Active Lesson"}
                   </span>
                 </div>
 
-                {/* Player Header with Web Speech API TTS Controls */}
-                <div className={`${bgCard} border rounded-2xl p-6 shadow-sm space-y-6`}>
+                <div
+                  className={`${bgCard} border rounded-2xl p-6 shadow-sm space-y-6`}
+                >
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                       <span className="text-[11px] font-mono font-bold bg-violet-500/10 text-violet-600 border border-violet-500/20 px-2.5 py-1 rounded">
                         Specialization Track: {activeCourseTitle}
                       </span>
                       <h1 className="text-2xl font-extrabold mt-2">
-                        {generatedRoadmap[activeModuleIdx]?.topics?.[activeLessonIdx] ||
-                          "Active Lesson"}
+                        {generatedRoadmap[activeModuleIdx]?.topics?.[
+                          activeLessonIdx
+                        ] || "Active Lesson"}
                       </h1>
                     </div>
                     <button
@@ -1016,7 +1096,11 @@ export default function JinvexaEnterpriseLMS() {
                     <button
                       onClick={toggleAudioSynthesis}
                       className="w-12 h-12 rounded-full bg-violet-600 hover:bg-violet-700 text-white flex items-center justify-center shadow transition flex-shrink-0"
-                      title={isPlayingAudio ? "Pause Audio Narration" : "Play Study Guide Aloud"}
+                      title={
+                        isPlayingAudio
+                          ? "Pause Audio Narration"
+                          : "Play Study Guide Aloud"
+                      }
                     >
                       {isPlayingAudio ? (
                         <Pause className="w-5 h-5" />
@@ -1028,7 +1112,9 @@ export default function JinvexaEnterpriseLMS() {
                       <div className="flex justify-between text-xs font-semibold">
                         <span>AI Lecture Narration ({activeModel})</span>
                         <span className="text-slate-500 font-mono">
-                          {isPlayingAudio ? "Synthesizing Aloud..." : "Ready to Play"}
+                          {isPlayingAudio
+                            ? "Synthesizing Aloud..."
+                            : "Ready to Play"}
                         </span>
                       </div>
                       <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -1051,15 +1137,18 @@ export default function JinvexaEnterpriseLMS() {
                 </div>
 
                 {/* Deep Study Materials Viewport */}
-                <div className={`${bgCard} border rounded-2xl p-8 space-y-6 shadow-sm`}>
+                <div
+                  className={`${bgCard} border rounded-2xl p-8 space-y-6 shadow-sm`}
+                >
                   <h3 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-violet-600" /> Complete Study Guide & Notes
+                    <FileText className="w-4 h-4 text-violet-600" /> Complete
+                    Study Guide & Notes
                   </h3>
 
                   {isLoadingLesson ? (
                     <div className="py-12 text-center text-xs text-violet-600 font-bold flex items-center justify-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" /> Writing deep university study guide
-                      for {activeCourseTitle}...
+                      <Loader2 className="w-4 h-4 animate-spin" /> Writing deep
+                      university study guide for {activeCourseTitle}...
                     </div>
                   ) : (
                     <div className="prose max-w-none text-sm space-y-4 leading-relaxed font-normal whitespace-pre-line">
@@ -1086,24 +1175,30 @@ export default function JinvexaEnterpriseLMS() {
                   Module Assessment: {activeCourseTitle}
                 </h1>
                 <p className="text-xs text-slate-500 mt-1 font-medium">
-                  Submit your responses to receive an immediate AI pedagogical evaluation and
-                  grade breakdown.
+                  Submit your responses to receive an immediate AI pedagogical
+                  evaluation and grade breakdown.
                 </p>
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-xs font-mono font-medium border px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
-                  <Clock className="w-4 h-4 text-violet-600" /> Time Limit: 45 mins
+                  <Clock className="w-4 h-4 text-violet-600" /> Time Limit: 45
+                  mins
                 </span>
               </div>
             </div>
 
             {!assignmentData ? (
-              <div className={`${bgCard} border rounded-2xl p-12 text-center space-y-4 shadow-sm`}>
+              <div
+                className={`${bgCard} border rounded-2xl p-12 text-center space-y-4 shadow-sm`}
+              >
                 <Award className="w-12 h-12 text-violet-600 mx-auto" />
-                <h3 className="text-lg font-bold">Ready for your {activeCourseTitle} exam?</h3>
+                <h3 className="text-lg font-bold">
+                  Ready for your {activeCourseTitle} exam?
+                </h3>
                 <p className="text-xs text-slate-500 max-w-md mx-auto font-medium">
-                  This comprehensive university exam consists of 8 to 10 multiple-choice analytical
-                  questions and exactly 3 open-ended essay prompts evaluated autonomously.
+                  This comprehensive university exam consists of 8 to 10
+                  multiple-choice analytical questions and exactly 3 open-ended
+                  essay prompts evaluated autonomously.
                 </p>
                 <button
                   onClick={handleGenerateAssignment}
@@ -1115,18 +1210,23 @@ export default function JinvexaEnterpriseLMS() {
                   ) : (
                     <Sparkles className="w-4 h-4" />
                   )}
-                  {isLoadingAssignment ? "Compiling Exam..." : "Start Graded Quiz"}
+                  {isLoadingAssignment
+                    ? "Compiling Exam..."
+                    : "Start Graded Quiz"}
                 </button>
               </div>
             ) : !evalResult ? (
-              <div className={`${bgCard} border rounded-2xl p-8 space-y-8 shadow-md`}>
-                {/* DYNAMIC RENDERING OF 8-12 MCQS (HIGH CONTRAST OPTION CARDS) */}
+              <div
+                className={`${bgCard} border rounded-2xl p-8 space-y-8 shadow-md`}
+              >
+                {/* PART 1: ANALYTICAL MULTIPLE CHOICE */}
                 <div className="space-y-8">
                   <h2 className="text-sm font-bold text-violet-600 uppercase tracking-wider border-b pb-2">
-                    Part 1: Analytical Multiple Choice ({assignmentData.mcqs?.length || 0} Questions)
+                    Part 1: Analytical Multiple Choice (
+                    {(assignmentData.mcqs || []).length} Questions)
                   </h2>
 
-                  {assignmentData.mcqs?.map((mcq, qIdx) => (
+                  {(assignmentData.mcqs || []).map((mcq: any, qIdx: number) => (
                     <div key={qIdx} className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-500 uppercase">
@@ -1140,64 +1240,76 @@ export default function JinvexaEnterpriseLMS() {
                         {mcq.question}
                       </p>
                       <div className="space-y-2.5 pt-1">
-                        {mcq.options?.map((opt: string, optIdx: number) => (
-                          <label
-                            key={optIdx}
-                            className={`flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer text-sm font-semibold transition ${
-                              selectedMCQs[qIdx] === optIdx
-                                ? "bg-violet-500/10 border-violet-600 text-violet-900 dark:text-violet-200 shadow-sm"
-                                : "bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 hover:border-slate-400"
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name={`mcq_${qIdx}`}
-                              checked={selectedMCQs[qIdx] === optIdx}
-                              onChange={() =>
-                                setSelectedMCQs({ ...selectedMCQs, [qIdx]: optIdx })
-                              }
-                              className="w-4 h-4 text-violet-600 border-slate-400 focus:ring-0"
-                            />
-                            {opt}
-                          </label>
-                        ))}
+                        {(mcq.options || []).map(
+                          (opt: string, optIdx: number) => (
+                            <label
+                              key={optIdx}
+                              className={`flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer text-sm font-semibold transition ${
+                                selectedMCQs[qIdx] === optIdx
+                                  ? "bg-violet-500/10 border-violet-600 text-violet-900 dark:text-violet-200 shadow-sm"
+                                  : "bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 hover:border-slate-400"
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name={`mcq_${qIdx}`}
+                                checked={selectedMCQs[qIdx] === optIdx}
+                                onChange={() =>
+                                  setSelectedMCQs({
+                                    ...selectedMCQs,
+                                    [qIdx]: optIdx,
+                                  })
+                                }
+                                className="w-4 h-4 text-violet-600 border-slate-400 focus:ring-0"
+                              />
+                              {opt}
+                            </label>
+                          )
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* DYNAMIC RENDERING OF ALL 3 ESSAY QUESTIONS */}
+                {/* PART 2: OPEN-ENDED TECHNICAL ESSAYS */}
                 <div className="space-y-8 pt-8 border-t border-slate-200/50">
                   <h2 className="text-sm font-bold text-violet-600 uppercase tracking-wider border-b pb-2">
-                    Part 2: Open-Ended Technical Essays ({assignmentData.essays?.length || 3} Prompts)
+                    Part 2: Open-Ended Technical Essays (
+                    {(assignmentData.essays || []).length} Prompts)
                   </h2>
 
-                  {assignmentData.essays?.map((essay, essayIdx) => (
-                    <div key={essayIdx} className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-500 uppercase">
-                          Essay Prompt {essayIdx + 1}
-                        </span>
-                        <span className="text-xs text-slate-500 font-mono font-medium">
-                          20 Points
-                        </span>
+                  {(assignmentData.essays || []).map(
+                    (essay: any, essayIdx: number) => (
+                      <div key={essayIdx} className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-500 uppercase">
+                            Essay Prompt {essayIdx + 1}
+                          </span>
+                          <span className="text-xs text-slate-500 font-mono font-medium">
+                            20 Points
+                          </span>
+                        </div>
+                        <p className="text-base font-bold text-slate-900 dark:text-white">
+                          {essay.question}
+                        </p>
+                        <textarea
+                          rows={4}
+                          value={essayTexts[essayIdx] || ""}
+                          onChange={(e) =>
+                            setEssayTexts({
+                              ...essayTexts,
+                              [essayIdx]: e.target.value,
+                            })
+                          }
+                          placeholder="Provide a structured, university-grade technical explanation..."
+                          className={`w-full ${bgInput} border rounded-xl p-4 text-sm font-medium outline-none focus:border-violet-600`}
+                        />
                       </div>
-                      <p className="text-base font-bold text-slate-900 dark:text-white">
-                        {essay.question}
-                      </p>
-                      <textarea
-                        rows={4}
-                        value={essayTexts[essayIdx] || ""}
-                        onChange={(e) =>
-                          setEssayTexts({ ...essayTexts, [essayIdx]: e.target.value })
-                        }
-                        placeholder="Provide a structured, university-grade technical explanation..."
-                        className={`w-full ${bgInput} border rounded-xl p-4 text-sm font-medium outline-none focus:border-violet-600`}
-                      />
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
 
+                {/* Submit Full Exam Button */}
                 <div className="pt-4 flex justify-end">
                   <button
                     onClick={handleSubmitAssignment}
@@ -1214,7 +1326,9 @@ export default function JinvexaEnterpriseLMS() {
                 </div>
               </div>
             ) : (
-              <div className={`${bgCard} border rounded-2xl p-8 space-y-6 shadow-md`}>
+              <div
+                className={`${bgCard} border rounded-2xl p-8 space-y-6 shadow-md`}
+              >
                 <div className="flex items-center justify-between p-6 bg-slate-100 dark:bg-slate-950 rounded-xl">
                   <div className="flex items-center gap-4">
                     <Award className="w-8 h-8 text-emerald-600" />
@@ -1247,27 +1361,39 @@ export default function JinvexaEnterpriseLMS() {
            ========================================================================= */}
         {activeTab === "coach" && (
           <div className="max-w-4xl mx-auto p-8 h-[calc(100vh-4rem)] flex flex-col">
-            <div className={`${bgCard} border rounded-2xl flex-1 flex flex-col overflow-hidden shadow-lg`}>
+            <div
+              className={`${bgCard} border rounded-2xl flex-1 flex flex-col overflow-hidden shadow-lg`}
+            >
               <div className="p-4 border-b border-slate-200/50 bg-slate-100 dark:bg-slate-950 flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-violet-500/10 border border-violet-500/20 rounded-lg text-violet-600 font-bold">
                     <Brain className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold">5. Jinvexa AI Learning Coach</h3>
+                    <h3 className="text-sm font-bold">
+                      5. Jinvexa AI Learning Coach
+                    </h3>
                     <p className="text-[10px] text-slate-500 font-medium">
                       Context: {activeCourseTitle} • Mode:{" "}
-                      <span className="text-violet-600 font-bold">{mentorMode.toUpperCase()}</span>
+                      <span className="text-violet-600 font-bold">
+                        {mentorMode.toUpperCase()}
+                      </span>
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setMentorMode(mentorMode === "session" ? "full" : "session")}
+                    onClick={() =>
+                      setMentorMode(
+                        mentorMode === "session" ? "full" : "session"
+                      )
+                    }
                     className="px-3 py-1 text-xs font-bold rounded-lg border bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:border-violet-500 transition"
                   >
-                    {mentorMode === "session" ? "1. Session Mode" : "2. Full Mode"}
+                    {mentorMode === "session"
+                      ? "1. Session Mode"
+                      : "2. Full Mode"}
                   </button>
                   <button
                     onClick={() => setShowHistoryModal(!showHistoryModal)}
@@ -1294,8 +1420,16 @@ export default function JinvexaEnterpriseLMS() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {[
-                      { topic: "Transformer Math Explanations", date: "2026-07-28", msgs: 8 },
-                      { topic: "LoRA vs Full Fine-Tuning", date: "2026-07-27", msgs: 14 },
+                      {
+                        topic: "Transformer Math Explanations",
+                        date: "2026-07-28",
+                        msgs: 8,
+                      },
+                      {
+                        topic: "LoRA vs Full Fine-Tuning",
+                        date: "2026-07-27",
+                        msgs: 14,
+                      },
                     ].map((hist, idx) => (
                       <div
                         key={idx}
@@ -1332,7 +1466,9 @@ export default function JinvexaEnterpriseLMS() {
                 {coachMessages.map((msg, idx) => (
                   <div
                     key={idx}
-                    className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                    className={`flex ${
+                      msg.sender === "user" ? "justify-end" : "justify-start"
+                    }`}
                   >
                     <div
                       className={`max-w-lg p-4 rounded-2xl text-xs leading-relaxed font-medium ${
@@ -1347,7 +1483,8 @@ export default function JinvexaEnterpriseLMS() {
                 ))}
                 {isThinking && (
                   <div className="flex items-center gap-2 text-xs font-semibold text-violet-600 pl-2">
-                    <Loader2 className="w-4 h-4 animate-spin" /> AI Coach is reasoning...
+                    <Loader2 className="w-4 h-4 animate-spin" /> AI Coach is
+                    reasoning...
                   </div>
                 )}
               </div>
@@ -1379,21 +1516,29 @@ export default function JinvexaEnterpriseLMS() {
           <div className="max-w-6xl mx-auto p-8 space-y-8">
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2">
-                <BarChart3 className="w-6 h-6 text-violet-600" /> 7. & 8. Analytics & Progress
-                Metrics
+                <BarChart3 className="w-6 h-6 text-violet-600" /> 7. & 8.
+                Analytics & Progress Metrics
               </h1>
               <p className="text-xs text-slate-500 mt-1">
-                Real-time tracking of your mastered concepts, assignments, and certificate
-                eligibility.
+                Real-time tracking of your mastered concepts, assignments, and
+                certificate eligibility.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}>
-                <p className="text-xs text-slate-500 uppercase font-semibold">Total Sessions</p>
-                <p className="text-3xl font-extrabold text-violet-600">{userSessions.length}</p>
+              <div
+                className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}
+              >
+                <p className="text-xs text-slate-500 uppercase font-semibold">
+                  Total Sessions
+                </p>
+                <p className="text-3xl font-extrabold text-violet-600">
+                  {userSessions.length}
+                </p>
               </div>
-              <div className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}>
+              <div
+                className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}
+              >
                 <p className="text-xs text-slate-500 uppercase font-semibold">
                   Mastered Modules
                 </p>
@@ -1401,19 +1546,24 @@ export default function JinvexaEnterpriseLMS() {
                   {generatedRoadmap.length || 3}
                 </p>
               </div>
-              <div className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}>
+              <div
+                className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}
+              >
                 <p className="text-xs text-slate-500 uppercase font-semibold">
                   Average Quiz Score
                 </p>
                 <p className="text-3xl font-extrabold text-emerald-600">
                   {userScores.length > 0
                     ? Math.round(
-                        userScores.reduce((a, b) => a + b, 0) / userScores.length
+                        userScores.reduce((a, b) => a + b, 0) /
+                          userScores.length
                       ) + "%"
                     : "N/A"}
                 </p>
               </div>
-              <div className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}>
+              <div
+                className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}
+              >
                 <p className="text-xs text-slate-500 uppercase font-semibold">
                   7. Certificate Status
                 </p>
@@ -1426,7 +1576,8 @@ export default function JinvexaEnterpriseLMS() {
 
             <div className="space-y-4">
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <Layers className="w-5 h-5 text-violet-600" /> 9. All User Sessions
+                <Layers className="w-5 h-5 text-violet-600" /> 9. All User
+                Sessions
               </h2>
               <div className="grid grid-cols-1 gap-4">
                 {userSessions.map((sess, idx) => (
@@ -1436,10 +1587,13 @@ export default function JinvexaEnterpriseLMS() {
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-xs font-bold text-violet-600">
-                        <span>{sess.mode}</span> • <span>Created: {sess.created}</span>
+                        <span>{sess.mode}</span> •{" "}
+                        <span>Created: {sess.created}</span>
                       </div>
                       <h3 className="text-lg font-bold">{sess.topic}</h3>
-                      <p className="text-xs text-slate-500 font-mono">ID: {sess.id}</p>
+                      <p className="text-xs text-slate-500 font-mono">
+                        ID: {sess.id}
+                      </p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
@@ -1453,7 +1607,10 @@ export default function JinvexaEnterpriseLMS() {
 
                       <button
                         onClick={() =>
-                          handleContinueConversation(sess.topic, sess.roadmap)
+                          handleContinueConversation(
+                            sess.topic,
+                            sess.roadmap
+                          )
                         }
                         className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition"
                       >
@@ -1468,9 +1625,13 @@ export default function JinvexaEnterpriseLMS() {
 
             {selectedSessionInspect && (
               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className={`${bgCard} border max-w-lg w-full rounded-2xl p-6 space-y-4 shadow-2xl`}>
+                <div
+                  className={`${bgCard} border max-w-lg w-full rounded-2xl p-6 space-y-4 shadow-2xl`}
+                >
                   <div className="flex justify-between items-center border-b pb-3">
-                    <h3 className="font-bold text-base">11. Teaching Status Inspector</h3>
+                    <h3 className="font-bold text-base">
+                      11. Teaching Status Inspector
+                    </h3>
                     <button
                       onClick={() => setSelectedSessionInspect(null)}
                       className="text-xs text-slate-400 hover:text-rose-500 font-bold"
@@ -1481,7 +1642,9 @@ export default function JinvexaEnterpriseLMS() {
                   <div className="space-y-2 text-xs">
                     <p>
                       <strong>Session ID:</strong>{" "}
-                      <span className="font-mono">{selectedSessionInspect.id}</span>
+                      <span className="font-mono">
+                        {selectedSessionInspect.id}
+                      </span>
                     </p>
                     <p>
                       <strong>Topic:</strong> {selectedSessionInspect.topic}
@@ -1490,12 +1653,12 @@ export default function JinvexaEnterpriseLMS() {
                       <strong>Generated Manifest:</strong> Complete • 4 Phases
                     </p>
                     <p>
-                      <strong>Text Lesson Files:</strong> {selectedSessionInspect.textFiles} files
-                      ready
+                      <strong>Text Lesson Files:</strong>{" "}
+                      {selectedSessionInspect.textFiles} files ready
                     </p>
                     <p>
-                      <strong>TTS Audio Files:</strong> {selectedSessionInspect.audioFiles} files
-                      ready
+                      <strong>TTS Audio Files:</strong>{" "}
+                      {selectedSessionInspect.audioFiles} files ready
                     </p>
                     <p>
                       <strong>Overall Status:</strong>{" "}
@@ -1517,14 +1680,17 @@ export default function JinvexaEnterpriseLMS() {
           <div className="max-w-5xl mx-auto p-8 space-y-8">
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2">
-                <ShieldCheck className="w-6 h-6 text-purple-600" /> Enterprise Admin Suite
+                <ShieldCheck className="w-6 h-6 text-purple-600" /> Enterprise
+                Admin Suite
               </h1>
               <p className="text-xs text-slate-500 mt-1 font-medium">
                 12. Model Info & 13. Active Cloud Reasoning Engine Switcher.
               </p>
             </div>
 
-            <div className={`${bgCard} border rounded-2xl p-6 space-y-4 shadow-sm`}>
+            <div
+              className={`${bgCard} border rounded-2xl p-6 space-y-4 shadow-sm`}
+            >
               <h3 className="text-sm font-bold uppercase tracking-wider">
                 13. Active Cloud Reasoning Engine
               </h3>
@@ -1562,9 +1728,13 @@ export default function JinvexaEnterpriseLMS() {
                   >
                     <div>
                       <p className="text-xs font-bold">{m.name}</p>
-                      <p className="text-[10px] text-slate-500 mt-0.5 font-normal">{m.desc}</p>
+                      <p className="text-[10px] text-slate-500 mt-0.5 font-normal">
+                        {m.desc}
+                      </p>
                     </div>
-                    {activeModel === m.id && <CheckCircle2 className="w-4 h-4 text-violet-600" />}
+                    {activeModel === m.id && (
+                      <CheckCircle2 className="w-4 h-4 text-violet-600" />
+                    )}
                   </button>
                 ))}
               </div>
