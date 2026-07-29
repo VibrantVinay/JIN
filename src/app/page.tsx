@@ -120,11 +120,36 @@ interface QuizPayload {
 export default function JinvexaEnterpriseLMS() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
 
-  // Auth State (#14)
+  // Auth State (#14) - Loads from LocalStorage so refresh does not log out
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [authError, setAuthError] = useState("");
+
+  // Load Saved User Login on First Mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedUser = localStorage.getItem("jinvexa_user");
+      if (savedUser) {
+        try {
+          setCurrentUser(JSON.parse(savedUser));
+        } catch (err) {
+          console.error("Error parsing saved user");
+        }
+      }
+    }
+  }, []);
+
+  // Save User to LocalStorage whenever currentUser changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (currentUser) {
+        localStorage.setItem("jinvexa_user", JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem("jinvexa_user");
+      }
+    }
+  }, [currentUser]);
 
   // Navigation & Active LLM (#12 & #13)
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
@@ -182,8 +207,16 @@ export default function JinvexaEnterpriseLMS() {
       try {
         const res = await fetch(`/api/sessions?userId=${currentUser.id}`);
         const data = await res.json();
-        if (data.sessions && data.sessions.length > 0) {
-          setUserSessions(data.sessions);
+        if (data.sessions && Array.isArray(data.sessions) && data.sessions.length > 0) {
+          const normalizedSessions = data.sessions.map((doc: any) => ({
+            ...doc,
+            id: doc.id || doc._id?.toString(),
+          }));
+          setUserSessions(normalizedSessions);
+          if (normalizedSessions[0].roadmap) {
+            setGeneratedRoadmap(normalizedSessions[0].roadmap);
+            setActiveCourseTitle(normalizedSessions[0].topic);
+          }
           return;
         }
       } catch (err) {
@@ -208,7 +241,7 @@ export default function JinvexaEnterpriseLMS() {
     loadSessionsFromMongo();
   }, [currentUser]);
 
-  // Save Sessions to Browser Memory whenever userSessions updates as a safeguard
+  // Save Sessions to Browser Memory whenever userSessions updates
   useEffect(() => {
     if (typeof window !== "undefined" && userSessions.length > 0) {
       localStorage.setItem("jinvexa_sessions", JSON.stringify(userSessions));
@@ -297,7 +330,7 @@ export default function JinvexaEnterpriseLMS() {
     }
   };
 
-  // 2. When a new course is generated in handleAnalyzeDiscovery, save it directly to MongoDB:
+  // --- DISCOVERY & SPECIALIZATION GENERATOR (#1 & #2) ---
   const handleAnalyzeDiscovery = async () => {
     const inputPayload = discoveryType === "goal" ? goalInput : referenceUrl;
     if (!inputPayload.trim()) return;
@@ -313,8 +346,8 @@ export default function JinvexaEnterpriseLMS() {
         setGeneratedRoadmap(data.roadmap);
         setActiveCourseTitle(inputPayload);
 
-        const newSessionRecord = {
-          userId: currentUser?.id || "default_user",
+        const newSessionRecord: SessionRecord = {
+          id: `sess_${Date.now()}`,
           topic: inputPayload,
           mode: discoveryType === "goal" ? "Goal-Based" : "Reference-Based",
           created: new Date().toISOString().slice(0, 16).replace("T", " "),
@@ -327,23 +360,30 @@ export default function JinvexaEnterpriseLMS() {
           roadmap: data.roadmap,
         };
 
-        // SAVE DIRECTLY TO MONGODB
+        // SAVE DIRECTLY TO MONGODB OR LOCALSTORAGE
         try {
           const saveRes = await fetch("/api/sessions", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newSessionRecord),
+            body: JSON.stringify({
+              ...newSessionRecord,
+              userId: currentUser?.id || "default_user",
+            }),
           });
           const savedData = await saveRes.json();
 
           if (savedData.session) {
-            setUserSessions((prev) => [savedData.session, ...prev]);
+            const normalizedDoc = {
+              ...savedData.session,
+              id: savedData.session._id || savedData.session.id,
+            };
+            setUserSessions((prev) => [normalizedDoc, ...prev]);
           } else {
-            setUserSessions((prev) => [newSessionRecord as any, ...prev]);
+            setUserSessions((prev) => [newSessionRecord, ...prev]);
           }
         } catch (mongoError) {
-          console.error("MongoDB save failed, falling back to state:", mongoError);
-          setUserSessions((prev) => [newSessionRecord as any, ...prev]);
+          console.error("MongoDB save failed, falling back to local state:", mongoError);
+          setUserSessions((prev) => [newSessionRecord, ...prev]);
         }
 
         setActiveTab("classroom");
@@ -368,11 +408,11 @@ export default function JinvexaEnterpriseLMS() {
       const data = await res.json();
       setCurrentLessonText(
         data.content ||
-          `# ${lessonTitle}\n**Specialization:** ${topicName}\n\n### Theoretical Foundations\nMastering this concept requires evaluating latency, throughput, and system reliability under load.`
+          `# Complete Study Guide: ${lessonTitle}\n**Specialization:** ${topicName}\n\n### 1. Theoretical Foundations\nMastering this concept requires evaluating latency, throughput, and system reliability under load.\n\n### 2. Implementation Workflow\nAlways decouple state transformations from ingestion layers to ensure horizontal scalability.`
       );
     } catch (e) {
       setCurrentLessonText(
-        `# ${lessonTitle}\n\nWelcome to your dynamic study guide in **${topicName}**.`
+        `# Complete Study Guide: ${lessonTitle}\n**Specialization:** ${topicName}\n\n### 1. Deep Theoretical Foundations\nIn professional engineering environments, mastering **${lessonTitle}** requires a rigorous understanding of its underlying mechanical and computational principles.`
       );
     } finally {
       setIsLoadingLesson(false);
@@ -736,7 +776,12 @@ export default function JinvexaEnterpriseLMS() {
               {currentUser.username.charAt(0)}
             </div>
             <button
-              onClick={() => setCurrentUser(null)}
+              onClick={() => {
+                setCurrentUser(null);
+                if (typeof window !== "undefined") {
+                  localStorage.removeItem("jinvexa_user");
+                }
+              }}
               className="text-slate-400 hover:text-rose-600 transition"
               title="Sign Out"
             >
@@ -820,7 +865,7 @@ export default function JinvexaEnterpriseLMS() {
                         </div>
                         <h3 className="text-lg font-bold">{sess.topic}</h3>
                         <p className="text-xs text-slate-500 font-mono">
-                          ID: {sess.id}
+                          ID: {sess.id || sess._id}
                         </p>
                       </div>
 
@@ -1330,7 +1375,13 @@ export default function JinvexaEnterpriseLMS() {
                                 }
                                 className="w-4 h-4 text-violet-600 border-slate-400 focus:ring-0"
                               />
-                              <span className="text-slate-900 dark:text-slate-100 font-medium">
+                              <span
+                                className={
+                                  isZen
+                                    ? "text-slate-100 font-bold"
+                                    : "text-slate-900 font-bold"
+                                }
+                              >
                                 {opt}
                               </span>
                             </label>
@@ -1662,7 +1713,7 @@ export default function JinvexaEnterpriseLMS() {
                       </div>
                       <h3 className="text-lg font-bold">{sess.topic}</h3>
                       <p className="text-xs text-slate-500 font-mono">
-                        ID: {sess.id}
+                        ID: {sess.id || sess._id}
                       </p>
                     </div>
 
@@ -1713,7 +1764,7 @@ export default function JinvexaEnterpriseLMS() {
                     <p>
                       <strong>Session ID:</strong>{" "}
                       <span className="font-mono">
-                        {selectedSessionInspect.id}
+                        {selectedSessionInspect.id || selectedSessionInspect._id}
                       </span>
                     </p>
                     <p>
