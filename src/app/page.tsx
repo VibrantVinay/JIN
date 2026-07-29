@@ -450,7 +450,7 @@ export default function JinvexaEnterpriseLMS() {
       }
     }
   }, [activeModuleIdx, activeLessonIdx, generatedRoadmap, activeCourseTitle]);
-
+  
   // --- REAL TTS AUDIO SYNTHESIS ENGINE ---
   const toggleAudioSynthesis = () => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
@@ -463,10 +463,13 @@ export default function JinvexaEnterpriseLMS() {
       setIsPlayingAudio(false);
       setAudioProgress(0);
     } else {
+      // Strip markdown characters and divider lines so speech sounds natural
       const plainText = currentLessonText
         .replace(/#/g, "")
         .replace(/\*/g, "")
         .replace(/`/g, "")
+        .replace(/={2,}/g, " ") // Silences "======="
+        .replace(/-{2,}/g, " ") // Silences "-------"
         .slice(0, 1500);
 
       const utterance = new SpeechSynthesisUtterance(plainText);
@@ -486,7 +489,6 @@ export default function JinvexaEnterpriseLMS() {
       setAudioProgress(25);
     }
   };
-
   const stopAudioSynthesis = () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
