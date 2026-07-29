@@ -157,7 +157,7 @@ export default function JinvexaEnterpriseLMS() {
 
   // Navigation & Active LLM
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
-  const [activeModel, setActiveModel] = useState("meta/llama-3.3-70b-instruct");
+  const [activeModel, setActiveModel] = useState("google/gemma-4-31b-it:free");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Initialize strictly as empty array to prevent overwriting MongoDB data
