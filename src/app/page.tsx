@@ -1,4 +1,3 @@
-```tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -130,7 +129,7 @@ export default function JinvexaEnterpriseLMS() {
   const [activeModel, setActiveModel] = useState("meta/llama-3.3-70b-instruct");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // --- DYNAMIC LEARNING SESSIONS DATABASE WITH AUTO-PERSISTENCE (#9) ---
+  // --- DYNAMIC LEARNING SESSIONS DATABASE (#9) ---
   const [userSessions, setUserSessions] = useState<SessionRecord[]>([
     {
       id: "sess_1_20260729_data_eng",
@@ -174,24 +173,40 @@ export default function JinvexaEnterpriseLMS() {
     },
   ]);
 
-  // Load Saved Courses from Browser Memory on Mount
+  // 1. Fetch user sessions from MongoDB when logged in (with LocalStorage fallback)
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedSessions = localStorage.getItem("jinvexa_sessions");
-      if (savedSessions) {
-        try {
-          const parsed = JSON.parse(savedSessions);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setUserSessions(parsed);
+    async function loadSessionsFromMongo() {
+      if (!currentUser) return;
+      try {
+        const res = await fetch(`/api/sessions?userId=${currentUser.id}`);
+        const data = await res.json();
+        if (data.sessions && data.sessions.length > 0) {
+          setUserSessions(data.sessions);
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to load MongoDB sessions, checking localStorage", err);
+      }
+
+      // LocalStorage fallback if MongoDB query fails
+      if (typeof window !== "undefined") {
+        const savedSessions = localStorage.getItem("jinvexa_sessions");
+        if (savedSessions) {
+          try {
+            const parsed = JSON.parse(savedSessions);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setUserSessions(parsed);
+            }
+          } catch (err) {
+            console.error("Failed to load saved sessions from localStorage");
           }
-        } catch (err) {
-          console.error("Failed to load saved sessions");
         }
       }
     }
-  }, []);
+    loadSessionsFromMongo();
+  }, [currentUser]);
 
-  // Save Sessions to Browser Memory whenever userSessions updates
+  // Save Sessions to Browser Memory whenever userSessions updates as a safeguard
   useEffect(() => {
     if (typeof window !== "undefined" && userSessions.length > 0) {
       localStorage.setItem("jinvexa_sessions", JSON.stringify(userSessions));
@@ -280,7 +295,7 @@ export default function JinvexaEnterpriseLMS() {
     }
   };
 
-  // --- DISCOVERY & SPECIALIZATION GENERATOR (#1 & #2) ---
+  // 2. When a new course is generated in handleAnalyzeDiscovery, save it directly to MongoDB:
   const handleAnalyzeDiscovery = async () => {
     const inputPayload = discoveryType === "goal" ? goalInput : referenceUrl;
     if (!inputPayload.trim()) return;
@@ -296,8 +311,8 @@ export default function JinvexaEnterpriseLMS() {
         setGeneratedRoadmap(data.roadmap);
         setActiveCourseTitle(inputPayload);
 
-        const newSessionRecord: SessionRecord = {
-          id: `sess_${Date.now()}`,
+        const newSessionRecord = {
+          userId: currentUser?.id || "default_user",
           topic: inputPayload,
           mode: discoveryType === "goal" ? "Goal-Based" : "Reference-Based",
           created: new Date().toISOString().slice(0, 16).replace("T", " "),
@@ -309,7 +324,26 @@ export default function JinvexaEnterpriseLMS() {
           status: "Complete • Ready for Classroom",
           roadmap: data.roadmap,
         };
-        setUserSessions((prev) => [newSessionRecord, ...prev]);
+
+        // SAVE DIRECTLY TO MONGODB
+        try {
+          const saveRes = await fetch("/api/sessions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newSessionRecord),
+          });
+          const savedData = await saveRes.json();
+
+          if (savedData.session) {
+            setUserSessions((prev) => [savedData.session, ...prev]);
+          } else {
+            setUserSessions((prev) => [newSessionRecord as any, ...prev]);
+          }
+        } catch (mongoError) {
+          console.error("MongoDB save failed, falling back to state:", mongoError);
+          setUserSessions((prev) => [newSessionRecord as any, ...prev]);
+        }
+
         setActiveTab("classroom");
       }
     } catch (e) {
@@ -954,7 +988,6 @@ export default function JinvexaEnterpriseLMS() {
                           <p className="text-xs text-slate-500 pl-9">
                             {item.description}
                           </p>
-                          {/* HIGH CONTRAST TAG PALETTE FIX */}
                           <div className="flex flex-wrap gap-2 pl-9 pt-1">
                             {item.topics?.map((tp: string, i: number) => (
                               <span
@@ -1780,5 +1813,3 @@ export default function JinvexaEnterpriseLMS() {
     </div>
   );
 }
-
-```
