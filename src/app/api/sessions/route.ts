@@ -1,7 +1,6 @@
 // src/app/api/sessions/route.ts
 import { connectToDatabase } from "../../../lib/mongodb";
 import Session from "../../../models/Session";
-import Session from "@/models/Session";
 
 // GET: Load all sessions for a logged-in user
 export async function GET(req: Request) {
