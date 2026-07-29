@@ -1,4 +1,5 @@
 // src/app/api/sessions/route.ts
+import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../../lib/mongodb";
 import Session from "../../../models/Session";
 
