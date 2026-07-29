@@ -120,14 +120,15 @@ interface QuizPayload {
 export default function JinvexaEnterpriseLMS() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
 
-  // Auth State (#14) - Persistent across page refreshes
+  // Auth State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [authError, setAuthError] = useState("");
 
-  // Hydration Guard Flag
+  // Hydration & MongoDB Syncing Flags
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isFetchingSessions, setIsFetchingSessions] = useState(false);
 
   // Load Saved User Login on First Mount
   useEffect(() => {
@@ -154,110 +155,71 @@ export default function JinvexaEnterpriseLMS() {
     }
   }, [currentUser]);
 
-  // Navigation & Active LLM (#12 & #13)
+  // Navigation & Active LLM
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [activeModel, setActiveModel] = useState("meta/llama-3.3-70b-instruct");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // --- DYNAMIC LEARNING SESSIONS DATABASE (#9) ---
-  // INITIALIZED AS EMPTY [] TO PREVENT OVERWRITING MONGODB ON MOUNT!
+  // Initialize strictly as empty array to prevent overwriting MongoDB data
   const [userSessions, setUserSessions] = useState<SessionRecord[]>([]);
 
-  // 1. Fetch user sessions safely from MongoDB or LocalStorage
+  // 1. Fetch user sessions globally from MongoDB
   useEffect(() => {
     async function loadSessionsFromStorage() {
       if (!currentUser) return;
+      
+      setIsFetchingSessions(true); // START MONGODB SYNC SPINNER
       let loadedSuccessfully = false;
 
-      // Check MongoDB First
+      // STRICT MONGODB FETCH FIRST
       try {
         const res = await fetch(`/api/sessions?userId=${currentUser.id}`);
-        const data = await res.json();
-        if (data.sessions && Array.isArray(data.sessions) && data.sessions.length > 0) {
-          const normalizedSessions = data.sessions.map((doc: any) => ({
-            ...doc,
-            id: doc.id || doc._id?.toString(),
-          }));
-          setUserSessions(normalizedSessions);
-          if (normalizedSessions[0].roadmap) {
-            setGeneratedRoadmap(normalizedSessions[0].roadmap);
-            setActiveCourseTitle(normalizedSessions[0].topic);
+        if (res.ok) {
+          const data = await res.json();
+          // We trust MongoDB even if length is 0 (it means they have no courses yet)
+          if (data.sessions && Array.isArray(data.sessions)) {
+            const normalizedSessions = data.sessions.map((doc: any) => ({
+              ...doc,
+              id: doc.id || doc._id?.toString(),
+            }));
+            setUserSessions(normalizedSessions);
+            
+            if (normalizedSessions.length > 0 && normalizedSessions[0].roadmap) {
+              setGeneratedRoadmap(normalizedSessions[0].roadmap);
+              setActiveCourseTitle(normalizedSessions[0].topic);
+            }
+            loadedSuccessfully = true;
           }
-          loadedSuccessfully = true;
         }
       } catch (err) {
         console.error("Failed to load MongoDB sessions, checking localStorage fallback");
       }
 
-      // Check LocalStorage if MongoDB had no courses
+      // ONLY check LocalStorage if MongoDB request completely failed/timed out
       if (!loadedSuccessfully && typeof window !== "undefined") {
-        const savedSessions = localStorage.getItem(`jinvexa_sessions_${currentUser.id}`);
+        const savedSessions = 
+          localStorage.getItem(`jinvexa_sessions_${currentUser.id}`) || 
+          localStorage.getItem("jinvexa_sessions");
+          
         if (savedSessions) {
           try {
             const parsed = JSON.parse(savedSessions);
-            if (Array.isArray(parsed) && parsed.length > 0) {
+            if (Array.isArray(parsed)) {
               setUserSessions(parsed);
-              if (parsed[0].roadmap) {
+              if (parsed.length > 0 && parsed[0].roadmap) {
                 setGeneratedRoadmap(parsed[0].roadmap);
                 setActiveCourseTitle(parsed[0].topic);
               }
               loadedSuccessfully = true;
             }
           } catch (err) {
-            console.error("Failed to load saved sessions from localStorage");
+            console.error("Failed to parse local storage sessions.");
           }
         }
       }
 
-      // If neither MongoDB nor LocalStorage had any courses, provide the default demo course
-      if (!loadedSuccessfully) {
-        const defaultDemoCourse: SessionRecord = {
-          id: "sess_1_20260729_data_eng",
-          topic: "Data Engineering & Cloud Big Data Architecture",
-          mode: "Goal-Based",
-          created: "2026-07-29 09:30",
-          messages: 14,
-          progress: "40%",
-          lessonsGenerated: 15,
-          audioFiles: 8,
-          textFiles: 7,
-          status: "Complete • Ready for Classroom",
-          roadmap: [
-            {
-              phase: 1,
-              title: "Foundations in Data Engineering",
-              hours: 20,
-              topics: [
-                "Introduction to Data Engineering & Pipelines",
-                "Data Ingestion and Streaming Processing",
-                "Distributed Storage & Retrieval Schemas",
-                "Data Quality, Lineage and Governance",
-              ],
-              description:
-                "Comprehensive introduction to big data pipelines and distributed storage.",
-            },
-            {
-              phase: 2,
-              title: "Data Engineering with Big Data and Cloud",
-              hours: 25,
-              topics: [
-                "Big Data Technologies (Hadoop, Spark, Kafka)",
-                "Cloud-Based Data Warehousing (AWS, GCP, Snowflake)",
-                "ETL vs ELT Workflows and Transformations",
-                "Data Security, Encryption and Compliance",
-              ],
-              description:
-                "Deep technical dive into enterprise cloud warehouses and stream processing.",
-            },
-          ],
-        };
-        setUserSessions([defaultDemoCourse]);
-        setGeneratedRoadmap(defaultDemoCourse.roadmap || []);
-        setActiveCourseTitle(defaultDemoCourse.topic);
-      }
-
-      // Allow storage saving now that hydration is complete
       setIsHydrated(true);
+      setIsFetchingSessions(false); // STOP MONGODB SYNC SPINNER
     }
 
     loadSessionsFromStorage();
@@ -267,22 +229,19 @@ export default function JinvexaEnterpriseLMS() {
   useEffect(() => {
     if (isHydrated && typeof window !== "undefined" && currentUser && userSessions.length > 0) {
       localStorage.setItem(`jinvexa_sessions_${currentUser.id}`, JSON.stringify(userSessions));
+      localStorage.setItem("jinvexa_sessions", JSON.stringify(userSessions)); 
     }
   }, [userSessions, isHydrated, currentUser]);
 
-  // Discovery Engine (#1 & #2)
-  const [discoveryType, setDiscoveryType] = useState<"goal" | "reference">(
-    "goal"
-  );
+  // Discovery Engine
+  const [discoveryType, setDiscoveryType] = useState<"goal" | "reference">("goal");
   const [goalInput, setGoalInput] = useState("");
   const [referenceUrl, setReferenceUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [activeCourseTitle, setActiveCourseTitle] = useState(
-    "Data Engineering & Cloud Big Data Architecture"
-  );
+  const [activeCourseTitle, setActiveCourseTitle] = useState("Dashboard");
   const [generatedRoadmap, setGeneratedRoadmap] = useState<ModuleItem[]>([]);
 
-  // Teaching Layer Classroom State (#3)
+  // Teaching Layer Classroom State
   const [activeModuleIdx, setActiveModuleIdx] = useState(0);
   const [activeLessonIdx, setActiveLessonIdx] = useState(0);
   const [currentLessonText, setCurrentLessonText] = useState<string>("");
@@ -292,7 +251,7 @@ export default function JinvexaEnterpriseLMS() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [audioProgress, setAudioProgress] = useState(0);
 
-  // Mentoring Layer & Coach History (#5 & #6)
+  // Mentoring Layer & Coach History
   const [mentorMode, setMentorMode] = useState<"session" | "full">("session");
   const [coachMessages, setCoachMessages] = useState([
     {
@@ -304,34 +263,23 @@ export default function JinvexaEnterpriseLMS() {
   const [isThinking, setIsThinking] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
-  // Assignment Layer & Graded Quizzes (#4)
-  const [assignmentData, setAssignmentData] = useState<QuizPayload | null>(
-    null
-  );
+  // Assignment Layer & Graded Quizzes
+  const [assignmentData, setAssignmentData] = useState<QuizPayload | null>(null);
   const [isLoadingAssignment, setIsLoadingAssignment] = useState(false);
-  const [selectedMCQs, setSelectedMCQs] = useState<{ [key: number]: number }>(
-    {}
-  );
+  const [selectedMCQs, setSelectedMCQs] = useState<{ [key: number]: number }>({});
   const [essayTexts, setEssayTexts] = useState<{ [key: number]: string }>({});
   const [evalResult, setEvalResult] = useState<any>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [userScores, setUserScores] = useState<number[]>([88, 92]);
 
-  // Teaching Status Inspector Modal (#11)
-  const [selectedSessionInspect, setSelectedSessionInspect] =
-    useState<SessionRecord | null>(null);
+  // Teaching Status Inspector Modal
+  const [selectedSessionInspect, setSelectedSessionInspect] = useState<SessionRecord | null>(null);
 
   // --- THEME UTILITY CLASSES ---
   const isZen = themeMode === "zen";
-  const bgMain = isZen
-    ? "bg-slate-950 text-slate-100"
-    : "bg-slate-50 text-slate-900";
-  const bgCard = isZen
-    ? "bg-slate-900/95 border-slate-800 text-slate-100"
-    : "bg-white border-slate-200 text-slate-900";
-  const bgInput = isZen
-    ? "bg-slate-950 border-slate-800 text-white"
-    : "bg-slate-50 border-slate-300 text-slate-900";
+  const bgMain = isZen ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900";
+  const bgCard = isZen ? "bg-slate-900/95 border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-900";
+  const bgInput = isZen ? "bg-slate-950 border-slate-800 text-slate-100" : "bg-slate-50 border-slate-300 text-slate-900";
 
   // --- AUTHENTICATION HANDLERS ---
   const handleLogin = (e: React.FormEvent) => {
@@ -350,7 +298,7 @@ export default function JinvexaEnterpriseLMS() {
     }
   };
 
-  // --- DISCOVERY & SPECIALIZATION GENERATOR (#1 & #2) ---
+  // --- DISCOVERY & SPECIALIZATION GENERATOR ---
   const handleAnalyzeDiscovery = async () => {
     const inputPayload = discoveryType === "goal" ? goalInput : referenceUrl;
     if (!inputPayload.trim()) return;
@@ -380,7 +328,7 @@ export default function JinvexaEnterpriseLMS() {
           roadmap: data.roadmap,
         };
 
-        // SAVE DIRECTLY TO MONGODB OR LOCALSTORAGE
+        // SAVE DIRECTLY TO MONGODB CLOUD DATABASE
         try {
           const saveRes = await fetch("/api/sessions", {
             method: "POST",
@@ -402,7 +350,7 @@ export default function JinvexaEnterpriseLMS() {
             setUserSessions((prev) => [newSessionRecord, ...prev]);
           }
         } catch (mongoError) {
-          console.error("MongoDB save failed, saving to state and localStorage:", mongoError);
+          console.error("MongoDB save failed, saving to state locally:", mongoError);
           setUserSessions((prev) => [newSessionRecord, ...prev]);
         }
 
@@ -415,7 +363,7 @@ export default function JinvexaEnterpriseLMS() {
     }
   };
 
-  // --- DYNAMIC CLASSROOM CONTENT GENERATOR (#3) ---
+  // --- DYNAMIC CLASSROOM CONTENT GENERATOR ---
   const fetchLessonContent = async (topicName: string, lessonTitle: string) => {
     setIsLoadingLesson(true);
     stopAudioSynthesis();
@@ -428,7 +376,7 @@ export default function JinvexaEnterpriseLMS() {
       const data = await res.json();
       setCurrentLessonText(
         data.content ||
-          `# Complete Study Guide: ${lessonTitle}\n**Specialization:** ${topicName}\n\n### 1. Theoretical Foundations\nMastering this concept requires evaluating latency, throughput, and system reliability under load.\n\n### 2. Implementation Workflow\nAlways decouple state transformations from ingestion layers to ensure horizontal scalability.`
+          `# Complete Study Guide: ${lessonTitle}\n**Specialization:** ${topicName}\n\n### 1. Theoretical Foundations\nMastering this concept requires evaluating latency, throughput, and system reliability under load.`
       );
     } catch (e) {
       setCurrentLessonText(
@@ -441,16 +389,14 @@ export default function JinvexaEnterpriseLMS() {
 
   useEffect(() => {
     if (generatedRoadmap.length > 0) {
-      const currentMod =
-        generatedRoadmap[activeModuleIdx] || generatedRoadmap[0];
-      const currentLessonTitle =
-        currentMod?.topics?.[activeLessonIdx] || currentMod?.title;
+      const currentMod = generatedRoadmap[activeModuleIdx] || generatedRoadmap[0];
+      const currentLessonTitle = currentMod?.topics?.[activeLessonIdx] || currentMod?.title;
       if (currentLessonTitle) {
         fetchLessonContent(activeCourseTitle, currentLessonTitle);
       }
     }
   }, [activeModuleIdx, activeLessonIdx, generatedRoadmap, activeCourseTitle]);
-  
+
   // --- REAL TTS AUDIO SYNTHESIS ENGINE ---
   const toggleAudioSynthesis = () => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
@@ -463,13 +409,9 @@ export default function JinvexaEnterpriseLMS() {
       setIsPlayingAudio(false);
       setAudioProgress(0);
     } else {
-      // Strip markdown characters and divider lines so speech sounds natural
+      // Aggressive Regex to completely silence markdown characters and divider lines
       const plainText = currentLessonText
-        .replace(/#/g, "")
-        .replace(/\*/g, "")
-        .replace(/`/g, "")
-        .replace(/={2,}/g, " ") // Silences "======="
-        .replace(/-{2,}/g, " ") // Silences "-------"
+        .replace(/[#*`=\-_]/g, " ")
         .slice(0, 1500);
 
       const utterance = new SpeechSynthesisUtterance(plainText);
@@ -489,6 +431,7 @@ export default function JinvexaEnterpriseLMS() {
       setAudioProgress(25);
     }
   };
+
   const stopAudioSynthesis = () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
@@ -497,7 +440,7 @@ export default function JinvexaEnterpriseLMS() {
     setAudioProgress(0);
   };
 
-  // --- MENTOR CHAT INTERFACE (#5) ---
+  // --- MENTOR CHAT INTERFACE ---
   const handleSendMessage = async () => {
     if (!chatInput.trim() || isThinking) return;
     const newMsgs = [...coachMessages, { sender: "user", text: chatInput }];
@@ -530,7 +473,7 @@ export default function JinvexaEnterpriseLMS() {
     }
   };
 
-  // --- GRADED ASSIGNMENT ENGINE (#4) ---
+  // --- GRADED ASSIGNMENT ENGINE ---
   const handleGenerateAssignment = async () => {
     setIsLoadingAssignment(true);
     setEvalResult(null);
@@ -591,12 +534,8 @@ export default function JinvexaEnterpriseLMS() {
   // --- 1. LIGHT MODE DEFAULT LOGIN SCREEN ---
   if (!currentUser) {
     return (
-      <div
-        className={`min-h-screen ${bgMain} flex flex-col justify-center items-center p-4 font-sans`}
-      >
-        <div
-          className={`w-full max-w-md ${bgCard} border rounded-2xl p-8 shadow-xl space-y-6`}
-        >
+      <div className={`min-h-screen ${bgMain} flex flex-col justify-center items-center p-4 font-sans`}>
+        <div className={`w-full max-w-md ${bgCard} border rounded-2xl p-8 shadow-xl space-y-6`}>
           <div className="flex flex-col items-center text-center space-y-2">
             <div className="p-3 bg-violet-600 rounded-xl shadow-md text-white">
               <GraduationCap className="w-8 h-8" />
@@ -650,12 +589,10 @@ export default function JinvexaEnterpriseLMS() {
 
           <div className="pt-4 border-t border-slate-200/50 text-[11px] text-slate-500 text-center space-y-1">
             <p>
-              Demo Learner:{" "}
-              <span className="font-mono font-bold">alice / alice123</span>
+              Demo Learner: <span className="font-mono font-bold">alice / alice123</span>
             </p>
             <p>
-              Demo Admin:{" "}
-              <span className="font-mono font-bold">admin / admin123</span>
+              Demo Admin: <span className="font-mono font-bold">admin / admin123</span>
             </p>
           </div>
         </div>
@@ -665,9 +602,7 @@ export default function JinvexaEnterpriseLMS() {
 
   // --- 2. MAIN 14-FUNCTIONALITY ENTERPRISE LMS LAYOUT ---
   return (
-    <div
-      className={`min-h-screen ${bgMain} flex flex-col font-sans transition-colors duration-300`}
-    >
+    <div className={`min-h-screen ${bgMain} flex flex-col font-sans transition-colors duration-300`}>
       {/* HEADER NAVBAR */}
       <header
         className={`h-16 border-b ${
@@ -857,12 +792,16 @@ export default function JinvexaEnterpriseLMS() {
                 Tracks ({userSessions.length})
               </h2>
 
-              {userSessions.length === 0 ? (
-                <div
-                  className={`${bgCard} border rounded-xl p-8 text-center space-y-3 shadow-sm`}
-                >
+              {/* MONGODB SYNC INDICATOR */}
+              {isFetchingSessions ? (
+                <div className={`${bgCard} border rounded-xl p-12 text-center flex flex-col items-center justify-center space-y-4 shadow-sm`}>
+                  <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+                  <p className="text-sm font-bold text-slate-500">Syncing with MongoDB Cloud Server...</p>
+                </div>
+              ) : userSessions.length === 0 ? (
+                <div className={`${bgCard} border rounded-xl p-8 text-center space-y-3 shadow-sm`}>
                   <p className="text-sm font-medium text-slate-500">
-                    No active specializations created yet.
+                    No active specializations found.
                   </p>
                   <button
                     onClick={() => setActiveTab("discovery")}
@@ -898,7 +837,7 @@ export default function JinvexaEnterpriseLMS() {
                             {sess.progress}
                           </span>
                         </div>
-                        <div className="w-full h-2 bg-slate-200/50 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className="w-full h-2 bg-slate-200/50 border border-slate-300 dark:border-transparent dark:bg-slate-800 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-violet-600 rounded-full"
                             style={{ width: sess.progress }}
@@ -949,7 +888,7 @@ export default function JinvexaEnterpriseLMS() {
                 documentation.
               </p>
 
-              <div className="inline-flex p-1 bg-slate-200/60 dark:bg-slate-900 border rounded-xl gap-1 mt-4">
+              <div className={`inline-flex p-1 ${isZen ? 'bg-slate-900' : 'bg-slate-200'} border border-slate-300 dark:border-transparent rounded-xl gap-1 mt-4`}>
                 <button
                   onClick={() => setDiscoveryType("goal")}
                   className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
@@ -1083,7 +1022,7 @@ export default function JinvexaEnterpriseLMS() {
                               setActiveLessonIdx(0);
                               setActiveTab("classroom");
                             }}
-                            className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-semibold transition"
+                            className={`${isZen ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-900 hover:bg-slate-800'} text-white px-4 py-2 rounded-lg text-xs font-semibold transition`}
                           >
                             Open Module
                           </button>
@@ -1109,7 +1048,7 @@ export default function JinvexaEnterpriseLMS() {
                 sidebarOpen ? "block" : "hidden"
               }`}
             >
-              <div className="p-4 border-b border-slate-200/50 bg-slate-50 dark:bg-slate-950 flex justify-between items-center">
+              <div className={`p-4 border-b border-slate-200/50 ${isZen ? 'bg-slate-950' : 'bg-slate-50'} flex justify-between items-center`}>
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Course Syllabus
@@ -1164,7 +1103,7 @@ export default function JinvexaEnterpriseLMS() {
                             className={`p-3 rounded-xl cursor-pointer transition flex items-start gap-3 border ${
                               isCurrent
                                 ? "bg-violet-500/10 border-violet-500 text-violet-600 font-semibold shadow-sm"
-                                : "bg-transparent border-transparent hover:bg-slate-100/50 dark:hover:bg-slate-800/40 text-slate-600 dark:text-slate-400"
+                                : `bg-transparent border-transparent ${isZen ? 'hover:bg-slate-800/40' : 'hover:bg-slate-100/50'} text-slate-500`
                             }`}
                           >
                             <FileText
@@ -1225,7 +1164,7 @@ export default function JinvexaEnterpriseLMS() {
                   </div>
 
                   {/* Audio Controls */}
-                  <div className="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-4 rounded-xl flex items-center gap-4">
+                  <div className={`${isZen ? 'bg-slate-950 border-slate-800' : 'bg-slate-100 border-slate-300'} border p-4 rounded-xl flex items-center gap-4`}>
                     <button
                       onClick={toggleAudioSynthesis}
                       className="w-12 h-12 rounded-full bg-violet-600 hover:bg-violet-700 text-white flex items-center justify-center shadow transition flex-shrink-0"
@@ -1250,7 +1189,7 @@ export default function JinvexaEnterpriseLMS() {
                             : "Ready to Play"}
                         </span>
                       </div>
-                      <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div className={`w-full h-2 ${isZen ? 'bg-slate-800' : 'bg-slate-300'} rounded-full overflow-hidden`}>
                         <div
                           className="h-full bg-violet-600 rounded-full transition-all duration-300"
                           style={{ width: `${audioProgress}%` }}
@@ -1369,9 +1308,12 @@ export default function JinvexaEnterpriseLMS() {
                           10 Points
                         </span>
                       </div>
-                      <p className="text-base font-bold text-slate-900 dark:text-white">
+                      
+                      {/* EXPLICIT DARK/LIGHT TEXT CLASS (Not reliant on Tailwind 'dark:') */}
+                      <p className={`text-base font-bold ${isZen ? 'text-slate-100' : 'text-slate-900'}`}>
                         {mcq.question}
                       </p>
+                      
                       <div className="space-y-2.5 pt-1">
                         {(mcq.options || []).map(
                           (opt: string, optIdx: number) => (
@@ -1432,9 +1374,12 @@ export default function JinvexaEnterpriseLMS() {
                             20 Points
                           </span>
                         </div>
-                        <p className="text-base font-bold text-slate-900 dark:text-white">
+                        
+                        {/* EXPLICIT DARK/LIGHT TEXT CLASS (Not reliant on Tailwind 'dark:') */}
+                        <p className={`text-base font-bold ${isZen ? 'text-slate-100' : 'text-slate-900'}`}>
                           {essay.question}
                         </p>
+                        
                         <textarea
                           rows={4}
                           value={essayTexts[essayIdx] || ""}
@@ -1472,7 +1417,7 @@ export default function JinvexaEnterpriseLMS() {
               <div
                 className={`${bgCard} border rounded-2xl p-8 space-y-6 shadow-md`}
               >
-                <div className="flex items-center justify-between p-6 bg-slate-100 dark:bg-slate-950 rounded-xl">
+                <div className={`flex items-center justify-between p-6 ${isZen ? 'bg-slate-950' : 'bg-slate-100'} rounded-xl`}>
                   <div className="flex items-center gap-4">
                     <Award className="w-8 h-8 text-emerald-600" />
                     <div>
@@ -1486,12 +1431,12 @@ export default function JinvexaEnterpriseLMS() {
                   </div>
                   <button
                     onClick={() => setAssignmentData(null)}
-                    className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-semibold"
+                    className={`${isZen ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-900 hover:bg-slate-800'} text-white px-5 py-2.5 rounded-xl text-xs font-semibold`}
                   >
                     Take New Exam
                   </button>
                 </div>
-                <div className="p-5 bg-slate-100 dark:bg-slate-950 rounded-xl text-sm leading-relaxed font-normal">
+                <div className={`p-5 ${isZen ? 'bg-slate-950' : 'bg-slate-100'} rounded-xl text-sm leading-relaxed font-normal`}>
                   {evalResult.feedback}
                 </div>
               </div>
@@ -1507,7 +1452,7 @@ export default function JinvexaEnterpriseLMS() {
             <div
               className={`${bgCard} border rounded-2xl flex-1 flex flex-col overflow-hidden shadow-lg`}
             >
-              <div className="p-4 border-b border-slate-200/50 bg-slate-100 dark:bg-slate-950 flex justify-between items-center">
+              <div className={`p-4 border-b border-slate-200/50 ${isZen ? 'bg-slate-950' : 'bg-slate-100'} flex justify-between items-center`}>
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-violet-500/10 border border-violet-500/20 rounded-lg text-violet-600 font-bold">
                     <Brain className="w-5 h-5" />
@@ -1532,7 +1477,7 @@ export default function JinvexaEnterpriseLMS() {
                         mentorMode === "session" ? "full" : "session"
                       )
                     }
-                    className="px-3 py-1 text-xs font-bold rounded-lg border bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:border-violet-500 transition"
+                    className={`px-3 py-1 text-xs font-bold rounded-lg border ${isZen ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-300'} hover:border-violet-500 transition`}
                   >
                     {mentorMode === "session"
                       ? "1. Session Mode"
@@ -1549,7 +1494,7 @@ export default function JinvexaEnterpriseLMS() {
               </div>
 
               {showHistoryModal && (
-                <div className="p-4 bg-violet-50 dark:bg-slate-900 border-b border-violet-200 dark:border-slate-800 space-y-2 animate-in fade-in">
+                <div className={`p-4 ${isZen ? 'bg-slate-900 border-slate-800' : 'bg-violet-50 border-violet-200'} border-b space-y-2 animate-in fade-in`}>
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-bold text-violet-600 uppercase">
                       6. Saved Mentoring Conversations
@@ -1576,7 +1521,7 @@ export default function JinvexaEnterpriseLMS() {
                     ].map((hist, idx) => (
                       <div
                         key={idx}
-                        className="p-2.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg flex justify-between items-center text-xs"
+                        className={`p-2.5 ${isZen ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'} border rounded-lg flex justify-between items-center text-xs`}
                       >
                         <div>
                           <p className="font-bold truncate">{hist.topic}</p>
@@ -1617,7 +1562,7 @@ export default function JinvexaEnterpriseLMS() {
                       className={`max-w-lg p-4 rounded-2xl text-xs leading-relaxed font-medium ${
                         msg.sender === "user"
                           ? "bg-violet-600 text-white rounded-br-none shadow-sm"
-                          : "bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-none"
+                          : `${isZen ? 'bg-slate-950 border-slate-800 text-slate-200' : 'bg-slate-100 border-slate-200 text-slate-800'} border rounded-bl-none`
                       }`}
                     >
                       {msg.text}
@@ -1632,7 +1577,7 @@ export default function JinvexaEnterpriseLMS() {
                 )}
               </div>
 
-              <div className="p-4 border-t border-slate-200/50 bg-slate-100 dark:bg-slate-950 flex gap-3">
+              <div className={`p-4 border-t border-slate-200/50 ${isZen ? 'bg-slate-950' : 'bg-slate-100'} flex gap-3`}>
                 <input
                   type="text"
                   value={chatInput}
