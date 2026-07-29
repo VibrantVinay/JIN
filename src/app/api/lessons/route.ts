@@ -10,33 +10,63 @@ export async function POST(req: Request) {
       process.env.OPENROUTER_API_KEY;
 
     const fallbackLesson = {
-      content: `### ${lessonTitle || "Lesson Overview"}
+      content: `# Complete Study Guide: ${lessonTitle || "Module Overview"}
+**Specialization:** ${topic || "Enterprise Technical Track"}
 
-Welcome to **${lessonTitle || "this module"}** in the **${topic || "Specialization"}** track.
+---
 
-#### Key Principles & Overview
-In this module, we explore the core engineering principles behind ${topic || "this topic"}. 
+## 1. Deep Theoretical & Mathematical Foundations
+In professional engineering environments, mastering **${lessonTitle || "this topic"}** requires a rigorous understanding of its underlying mechanical and computational principles. Rather than relying on superficial abstractions, robust systems engineering examines how data structures, state transitions, and memory allocations behave under high-concurrency loads.
 
-1. **System Fundamentals**: Establishing basic mathematical and logical frameworks.
-2. **Practical Implementation**: Applying theory to physical or software implementations.
-3. **Optimization & Control**: Fine-tuning latency, accuracy, and operational efficiency.
+### Key Architectural Constraints
+1. **Deterministic vs. Probabilistic Behavior:** Systems must be designed to handle both predictable input schemas and stochastic edge cases without dropping availability.
+2. **Throughput and Latency Optimization:** By minimizing I/O bottlenecks and optimizing cache locality, enterprise pipelines achieve sub-millisecond response times.
+3. **Fault Tolerance and Recovery:** Implementing idempotent operations and dead-letter queues ensures zero data loss during node failures.
 
-#### Practical Application
-To put this into practice, analyze how ${lessonTitle || "this concept"} handles unexpected input variance and edge-case execution.`,
+---
+
+## 2. Practical Syntax, Implementation & Code Workflows
+To implement **${lessonTitle || "this architecture"}** in production, engineers utilize standardized design patterns. Below is an architectural reference model demonstrating how components interact:
+
+\`\`\`text
+[Client Request] --> (API Gateway / Load Balancer)
+                           |
+            +--------------+--------------+
+            v                             v
+  [Stateless Worker A]          [Stateless Worker B]
+            |                             |
+            +--------------+--------------+
+                           v
+              (Distributed Write-Ahead Log)
+\`\`\`
+
+### Production Implementation Rules
+* Never block the primary event loop when executing heavy computational transformations.
+* Always decouple ingestion from storage using asynchronous buffering layers.
+
+---
+
+## 3. Real-World Case Study & Production Verification
+Consider a high-frequency financial trading platform or an autonomous robotics control loop implementing **${lessonTitle || "these principles"}**. During peak market volatility or rapid sensor drift, the architecture must automatically scale horizontally while preserving strict sequential ordering.`,
     };
 
     if (!apiKey) {
       return NextResponse.json(fallbackLesson);
     }
 
-    const systemPrompt = `You are Jinvexa AI Professor. Write an engaging, highly detailed, 3-paragraph educational lesson transcript for:
-    Specialization Topic: "${topic}"
+    const systemPrompt = `You are Jinvexa Distinguished Professor of Engineering. Write a deeply comprehensive, advanced, 500-to-800-word university study guide for:
+    Specialization: "${topic}"
     Lesson Title: "${lessonTitle}"
-    
-    Include 3 structured headings, clear technical explanations, and a short code or mathematical example relevant to "${topic}".`;
+
+    Your response MUST include:
+    1. A deep theoretical explanation of core mechanics, mathematics, and architectural trade-offs.
+    2. A structured text-based architecture diagram or ASCII chart.
+    3. Practical engineering implementation rules and clean code/syntax examples.
+    4. A real-world production case study analyzing edge cases and failure modes.
+    Use rich Markdown formatting (H2/H3 headings, bold text, bullet points, and code blocks).`;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
     const apiUrl = process.env.GROQ_API_KEY
       ? "https://api.groq.com/openai/v1/chat/completions"
@@ -60,8 +90,8 @@ To put this into practice, analyze how ${lessonTitle || "this concept"} handles 
       body: JSON.stringify({
         model: modelName,
         messages: [{ role: "system", content: systemPrompt }],
-        temperature: 0.4,
-        max_tokens: 1000,
+        temperature: 0.3,
+        max_tokens: 1500,
       }),
     });
 
@@ -72,11 +102,12 @@ To put this into practice, analyze how ${lessonTitle || "this concept"} handles 
     const data = await res.json();
     const content = data?.choices?.[0]?.message?.content;
 
-    return NextResponse.json({ content: content || fallbackLesson.content });
+    return NextResponse.json({
+      content: content || fallbackLesson.content,
+    });
   } catch (error) {
     return NextResponse.json({
-      content: `### Core Fundamentals
-Welcome to your lesson. Explore the core principles of your selected specialization.`,
+      content: `# Comprehensive Study Guide: ${lessonTitle}\n\nWelcome to your advanced lesson in **${topic}**.\n\n### 1. Architectural Foundations\nMastering this concept requires evaluating latency, throughput, and system reliability under load.\n\n### 2. Implementation Workflow\nAlways decouple state transformations from ingestion layers to ensure horizontal scalability.`,
     });
   }
 }
