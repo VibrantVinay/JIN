@@ -48,6 +48,7 @@ import {
   PlusCircle,
   TrendingUp,
   User,
+  VolumeX,
 } from "lucide-react";
 
 // --- GLOBAL ENTERPRISE TYPES ---
@@ -74,8 +75,6 @@ interface LessonItem {
   voice: string;
   duration: string;
   reason: string;
-  transcript?: string;
-  completed?: boolean;
 }
 
 interface ModuleItem {
@@ -105,120 +104,96 @@ interface QuizQuestionMCQ {
   question: string;
   options: string[];
   correctIndex: number;
-  explanation?: string;
 }
 
 interface QuizQuestionEssay {
   question: string;
-  rubric?: string;
 }
 
 interface QuizPayload {
-  mcq: QuizQuestionMCQ;
-  essay: QuizQuestionEssay;
+  mcqs: QuizQuestionMCQ[];
+  essays: QuizQuestionEssay[];
 }
 
 export default function JinvexaEnterpriseLMS() {
-  // --- 1. THEME ENGINE STATE ---
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
 
-  // --- 2. AUTHENTICATION STATE (#14) ---
+  // Auth State (#14)
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [authError, setAuthError] = useState("");
 
-  // --- 3. NAVIGATION & SYSTEM ARCHITECTURE (#12 & #13) ---
+  // Navigation & Active LLM (#12 & #13)
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [activeModel, setActiveModel] = useState("meta/llama-3.3-70b-instruct");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // --- 4. DYNAMIC LEARNING SESSIONS DATABASE (#9) ---
+  // Dynamic Learning Sessions Database (#9)
   const [userSessions, setUserSessions] = useState<SessionRecord[]>([
     {
-      id: "sess_1_20260729_ai_dev",
-      topic: "Generative AI & LLM Systems Engineering",
+      id: "sess_1_20260729_data_eng",
+      topic: "Data Engineering & Cloud Big Data Architecture",
       mode: "Goal-Based",
-      created: "2026-07-28 14:20",
+      created: "2026-07-29 09:30",
       messages: 14,
-      progress: "65%",
-      lessonsGenerated: 12,
-      audioFiles: 6,
-      textFiles: 6,
+      progress: "40%",
+      lessonsGenerated: 15,
+      audioFiles: 8,
+      textFiles: 7,
       status: "Complete • Ready for Classroom",
       roadmap: [
         {
           phase: 1,
-          title: "Foundations of Large Language Models",
-          hours: 15,
+          title: "Foundations in Data Engineering",
+          hours: 20,
           topics: [
-            "The Scaling Gap in Traditional AI",
-            "Mathematical Foundations of Transformers",
-            "Self-Attention vs. Multi-Head Attention",
+            "Introduction to Data Engineering & Pipelines",
+            "Data Ingestion and Streaming Processing",
+            "Distributed Storage & Retrieval Schemas",
+            "Data Quality, Lineage and Governance",
           ],
-          description: "Comprehensive introduction to LLM architecture and scaling limits.",
+          description: "Comprehensive introduction to big data pipelines and distributed storage.",
         },
         {
           phase: 2,
-          title: "Advanced Fine-Tuning & Quantization",
-          hours: 20,
+          title: "Data Engineering with Big Data and Cloud",
+          hours: 25,
           topics: [
-            "Low-Rank Adaptation (LoRA) Principles",
-            "RLHF: Reinforcement Learning from Human Feedback",
-            "Vector RAG Systems",
+            "Big Data Technologies (Hadoop, Spark, Kafka)",
+            "Cloud-Based Data Warehousing (AWS, GCP, Snowflake)",
+            "ETL vs ELT Workflows and Transformations",
+            "Data Security, Encryption and Compliance",
           ],
-          description: "Deep technical dive into enterprise LLM optimization and tooling.",
-        },
-      ],
-    },
-    {
-      id: "sess_2_20260728_next_cloud",
-      topic: "Next.js 14 Full-Stack Cloud Architecture",
-      mode: "Reference-Based",
-      created: "2026-07-27 09:15",
-      messages: 8,
-      progress: "90%",
-      lessonsGenerated: 8,
-      audioFiles: 4,
-      textFiles: 4,
-      status: "Complete • Ready for Classroom",
-      roadmap: [
-        {
-          phase: 1,
-          title: "App Router & Server Actions",
-          hours: 12,
-          topics: [
-            "React Server Components",
-            "Client Component Boundary Optimization",
-            "Streaming UI Workflows",
-          ],
-          description: "Modern Next.js 14 architecture and data fetching patterns.",
+          description: "Deep technical dive into enterprise cloud warehouses and stream processing.",
         },
       ],
     },
   ]);
 
-  // --- 5. DISCOVERY ENGINE (#1 & #2) ---
+  // Discovery Engine (#1 & #2)
   const [discoveryType, setDiscoveryType] = useState<"goal" | "reference">("goal");
   const [goalInput, setGoalInput] = useState("");
   const [referenceUrl, setReferenceUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [activeCourseTitle, setActiveCourseTitle] = useState(
-    "Generative AI & LLM Systems Engineering"
+    "Data Engineering & Cloud Big Data Architecture"
   );
   const [generatedRoadmap, setGeneratedRoadmap] = useState<ModuleItem[]>(
     userSessions[0].roadmap || []
   );
 
-  // --- 6. TEACHING LAYER CLASSROOM STATE (#3) ---
+  // Teaching Layer Classroom State (#3)
   const [activeModuleIdx, setActiveModuleIdx] = useState(0);
   const [activeLessonIdx, setActiveLessonIdx] = useState(0);
   const [currentLessonText, setCurrentLessonText] = useState<string>("");
   const [isLoadingLesson, setIsLoadingLesson] = useState(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [audioProgress, setAudioProgress] = useState(35);
 
-  // --- 7. MENTORING LAYER & COACH HISTORY (#5 & #6) ---
+  // REAL TTS AUDIO SYNTHESIZER STATE
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [audioProgress, setAudioProgress] = useState(0);
+
+  // Mentoring Layer & Coach History (#5 & #6)
   const [mentorMode, setMentorMode] = useState<"session" | "full">("session");
   const [coachMessages, setCoachMessages] = useState([
     {
@@ -230,16 +205,16 @@ export default function JinvexaEnterpriseLMS() {
   const [isThinking, setIsThinking] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
-  // --- 8. ASSIGNMENT LAYER & GRADED QUIZZES (#4) ---
+  // Assignment Layer & Graded Quizzes (#4)
   const [assignmentData, setAssignmentData] = useState<QuizPayload | null>(null);
   const [isLoadingAssignment, setIsLoadingAssignment] = useState(false);
-  const [selectedMCQ, setSelectedMCQ] = useState<number | null>(null);
-  const [essayText, setEssayText] = useState("");
+  const [selectedMCQs, setSelectedMCQs] = useState<{ [key: number]: number }>({});
+  const [essayTexts, setEssayTexts] = useState<{ [key: number]: string }>({});
   const [evalResult, setEvalResult] = useState<any>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [userScores, setUserScores] = useState<number[]>([88, 92]);
 
-  // --- 9. TEACHING STATUS INSPECTOR MODAL (#11) ---
+  // Teaching Status Inspector Modal (#11)
   const [selectedSessionInspect, setSelectedSessionInspect] =
     useState<SessionRecord | null>(null);
 
@@ -252,7 +227,6 @@ export default function JinvexaEnterpriseLMS() {
   const bgInput = isZen
     ? "bg-slate-950 border-slate-800 text-white"
     : "bg-slate-50 border-slate-300 text-slate-900";
-  const textSub = isZen ? "text-slate-400" : "text-slate-500";
 
   // --- AUTHENTICATION HANDLERS ---
   const handleLogin = (e: React.FormEvent) => {
@@ -287,7 +261,6 @@ export default function JinvexaEnterpriseLMS() {
         setGeneratedRoadmap(data.roadmap);
         setActiveCourseTitle(inputPayload);
 
-        // Dynamically add to user session logs
         const newSessionRecord: SessionRecord = {
           id: `sess_${Date.now()}`,
           topic: inputPayload,
@@ -295,9 +268,9 @@ export default function JinvexaEnterpriseLMS() {
           created: new Date().toISOString().slice(0, 16).replace("T", " "),
           messages: 1,
           progress: "10%",
-          lessonsGenerated: data.roadmap.length * 3,
-          audioFiles: Math.ceil((data.roadmap.length * 3) / 2),
-          textFiles: Math.floor((data.roadmap.length * 3) / 2),
+          lessonsGenerated: data.roadmap.length * 4,
+          audioFiles: Math.ceil((data.roadmap.length * 4) / 2),
+          textFiles: Math.floor((data.roadmap.length * 4) / 2),
           status: "Complete • Ready for Classroom",
           roadmap: data.roadmap,
         };
@@ -314,6 +287,7 @@ export default function JinvexaEnterpriseLMS() {
   // --- DYNAMIC CLASSROOM CONTENT GENERATOR (#3) ---
   const fetchLessonContent = async (topicName: string, lessonTitle: string) => {
     setIsLoadingLesson(true);
+    stopAudioSynthesis();
     try {
       const res = await fetch("/api/lesson", {
         method: "POST",
@@ -323,18 +297,17 @@ export default function JinvexaEnterpriseLMS() {
       const data = await res.json();
       setCurrentLessonText(
         data.content ||
-          `### ${lessonTitle}\n\nWelcome to **${lessonTitle}** in the **${topicName}** curriculum.\n\n#### Key Principles\n1. **Theoretical Foundations**: Understand the mathematical syntax and architectural constraints.\n2. **Practical Execution**: Implement robust code pipelines and test edge cases.\n3. **Performance Optimization**: Fine-tune latency and memory usage.`
+          `# ${lessonTitle}\n**Specialization:** ${topicName}\n\n### Theoretical Foundations\nMastering this concept requires evaluating latency, throughput, and system reliability under load.`
       );
     } catch (e) {
       setCurrentLessonText(
-        `### ${lessonTitle}\n\nWelcome to your dynamic lesson in **${topicName}**. Click any topic in the syllabus to generate custom AI pedagogical notes.`
+        `# ${lessonTitle}\n\nWelcome to your dynamic study guide in **${topicName}**.`
       );
     } finally {
       setIsLoadingLesson(false);
     }
   };
 
-  // Trigger lesson load on selection change
   useEffect(() => {
     if (generatedRoadmap.length > 0) {
       const currentMod = generatedRoadmap[activeModuleIdx] || generatedRoadmap[0];
@@ -345,6 +318,51 @@ export default function JinvexaEnterpriseLMS() {
       }
     }
   }, [activeModuleIdx, activeLessonIdx, generatedRoadmap, activeCourseTitle]);
+
+  // --- REAL TTS AUDIO SYNTHESIS ENGINE ---
+  const toggleAudioSynthesis = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      alert("Text-to-Speech is not supported in your browser.");
+      return;
+    }
+
+    if (isPlayingAudio) {
+      window.speechSynthesis.cancel();
+      setIsPlayingAudio(false);
+      setAudioProgress(0);
+    } else {
+      // Strip markdown characters so speech sounds natural
+      const plainText = currentLessonText
+        .replace(/#/g, "")
+        .replace(/\*/g, "")
+        .replace(/`/g, "")
+        .slice(0, 1500);
+
+      const utterance = new SpeechSynthesisUtterance(plainText);
+      utterance.rate = 1.0;
+
+      utterance.onend = () => {
+        setIsPlayingAudio(false);
+        setAudioProgress(100);
+      };
+
+      utterance.onerror = () => {
+        setIsPlayingAudio(false);
+      };
+
+      window.speechSynthesis.speak(utterance);
+      setIsPlayingAudio(true);
+      setAudioProgress(25);
+    }
+  };
+
+  const stopAudioSynthesis = () => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsPlayingAudio(false);
+    setAudioProgress(0);
+  };
 
   // --- MENTOR CHAT INTERFACE (#5) ---
   const handleSendMessage = async () => {
@@ -383,6 +401,8 @@ export default function JinvexaEnterpriseLMS() {
   const handleGenerateAssignment = async () => {
     setIsLoadingAssignment(true);
     setEvalResult(null);
+    setSelectedMCQs({});
+    setEssayTexts({});
     try {
       const res = await fetch("/api/assignment", {
         method: "POST",
@@ -399,7 +419,7 @@ export default function JinvexaEnterpriseLMS() {
   };
 
   const handleSubmitAssignment = async () => {
-    if (selectedMCQ === null || !essayText.trim()) return;
+    if (!assignmentData) return;
     setIsEvaluating(true);
     try {
       const res = await fetch("/api/assignment", {
@@ -408,7 +428,7 @@ export default function JinvexaEnterpriseLMS() {
         body: JSON.stringify({
           action: "evaluate",
           topic: activeCourseTitle,
-          userAnswers: { mcq: selectedMCQ, essay: essayText },
+          userAnswers: { mcqs: selectedMCQs, essays: essayTexts },
         }),
       });
       const data = await res.json();
@@ -423,8 +443,10 @@ export default function JinvexaEnterpriseLMS() {
     }
   };
 
-  // --- FUNCTIONALITY #10: CONTINUE CONVERSATION ---
-  const handleContinueConversation = (sessionTopic: string, sessionRoadmap?: ModuleItem[]) => {
+  const handleContinueConversation = (
+    sessionTopic: string,
+    sessionRoadmap?: ModuleItem[]
+  ) => {
     setActiveCourseTitle(sessionTopic);
     setGoalInput(sessionTopic);
     if (sessionRoadmap && sessionRoadmap.length > 0) {
@@ -442,7 +464,6 @@ export default function JinvexaEnterpriseLMS() {
             <div className="p-3 bg-violet-600 rounded-xl shadow-md text-white">
               <GraduationCap className="w-8 h-8" />
             </div>
-            {/* BRANDING REQUIREMENT: Jin in black (white in zen), vexa in violet */}
             <h1 className="text-3xl font-extrabold tracking-tight">
               <span className={isZen ? "text-white" : "text-black"}>Jin</span>
               <span className="text-violet-600">vexa</span>
@@ -520,7 +541,6 @@ export default function JinvexaEnterpriseLMS() {
             <div className="p-1.5 bg-violet-600 rounded-lg text-white font-bold shadow-sm">
               <GraduationCap className="w-5 h-5" />
             </div>
-            {/* BRANDING: Jin in black (white in zen), vexa in violet */}
             <span className="font-extrabold text-xl tracking-tight">
               <span className={isZen ? "text-white" : "text-black"}>Jin</span>
               <span className="text-violet-600">vexa</span>
@@ -603,9 +623,7 @@ export default function JinvexaEnterpriseLMS() {
           </nav>
         </div>
 
-        {/* Global Header Actions: Theme Switcher, Model Info, & Exit */}
         <div className="flex items-center gap-3">
-          {/* THEME SWITCHER: LIGHT MODE ☀️ vs ZEN MODE 🧘 */}
           <button
             onClick={() => setThemeMode(isZen ? "light" : "zen")}
             className={`px-3 py-1.5 rounded-full border text-xs font-semibold flex items-center gap-1.5 transition ${
@@ -623,7 +641,6 @@ export default function JinvexaEnterpriseLMS() {
             <span>{isZen ? "Zen Mode" : "Light Mode"}</span>
           </button>
 
-          {/* FUNCTIONALITY #12: MODEL INFO PILL */}
           <div
             className={`hidden md:flex items-center gap-2 border rounded-full px-3 py-1 text-[11px] font-mono ${
               isZen
@@ -639,7 +656,6 @@ export default function JinvexaEnterpriseLMS() {
             <div className="w-8 h-8 rounded-full bg-violet-100 border border-violet-300 flex items-center justify-center text-violet-700 font-bold text-xs">
               {currentUser.username.charAt(0)}
             </div>
-            {/* FUNCTIONALITY #14: EXIT / LOGOUT */}
             <button
               onClick={() => setCurrentUser(null)}
               className="text-slate-400 hover:text-rose-600 transition"
@@ -667,7 +683,7 @@ export default function JinvexaEnterpriseLMS() {
             >
               <div className="space-y-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-violet-600 bg-violet-500/10 px-2.5 py-1 rounded border border-violet-500/20">
-                  Active Specialization: {activeCourseTitle}
+                  Active Degree Track: {activeCourseTitle}
                 </span>
                 <h1 className="text-3xl font-extrabold">Welcome back, {currentUser.username}</h1>
                 <p className={`text-sm max-w-xl ${isZen ? "text-slate-300" : "text-slate-600"}`}>
@@ -688,64 +704,50 @@ export default function JinvexaEnterpriseLMS() {
                 {userSessions.length})
               </h2>
 
-              {userSessions.length === 0 ? (
-                <div className={`${bgCard} border rounded-xl p-8 text-center space-y-3 shadow-sm`}>
-                  <p className="text-sm font-medium text-slate-500">
-                    No active specializations created yet.
-                  </p>
-                  <button
-                    onClick={() => setActiveTab("discovery")}
-                    className="bg-violet-600 text-white font-semibold px-5 py-2 rounded-xl text-xs"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {userSessions.map((sess, idx) => (
+                  <div
+                    key={idx}
+                    className={`${bgCard} border rounded-xl p-6 flex flex-col justify-between space-y-6 shadow-sm transition`}
                   >
-                    Create Your First Specialization
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {userSessions.map((sess, idx) => (
-                    <div
-                      key={idx}
-                      className={`${bgCard} border rounded-xl p-6 flex flex-col justify-between space-y-6 shadow-sm transition`}
-                    >
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-xs text-slate-500 font-medium">
-                          <span>{sess.mode} Course</span>
-                          <span className="text-violet-600 font-bold bg-violet-500/10 px-2 py-0.5 rounded">
-                            {sess.status}
-                          </span>
-                        </div>
-                        <h3 className="text-lg font-bold">{sess.topic}</h3>
-                        <p className="text-xs text-slate-500 font-mono">ID: {sess.id}</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-xs font-semibold">
-                          <span>Overall Completion</span>
-                          <span className="text-violet-600">{sess.progress}</span>
-                        </div>
-                        <div className="w-full h-2 bg-slate-200/50 dark:bg-slate-800 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-violet-600 rounded-full"
-                            style={{ width: sess.progress }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-slate-200/50 flex justify-between items-center">
-                        <span className="text-xs text-slate-500 font-medium">
-                          Lessons: {sess.lessonsGenerated} • Audio: {sess.audioFiles}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-xs text-slate-500 font-medium">
+                        <span>{sess.mode} Course</span>
+                        <span className="text-violet-600 font-bold bg-violet-500/10 px-2 py-0.5 rounded">
+                          {sess.status}
                         </span>
-                        <button
-                          onClick={() => handleContinueConversation(sess.topic, sess.roadmap)}
-                          className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
-                        >
-                          Open Classroom <Play className="w-3.5 h-3.5 fill-current" />
-                        </button>
+                      </div>
+                      <h3 className="text-lg font-bold">{sess.topic}</h3>
+                      <p className="text-xs text-slate-500 font-mono">ID: {sess.id}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs font-semibold">
+                        <span>Overall Completion</span>
+                        <span className="text-violet-600">{sess.progress}</span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-200/50 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-violet-600 rounded-full"
+                          style={{ width: sess.progress }}
+                        />
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+
+                    <div className="pt-4 border-t border-slate-200/50 flex justify-between items-center">
+                      <span className="text-xs text-slate-500 font-medium">
+                        Lessons: {sess.lessonsGenerated} • Audio: {sess.audioFiles}
+                      </span>
+                      <button
+                        onClick={() => handleContinueConversation(sess.topic, sess.roadmap)}
+                        className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
+                      >
+                        Open Classroom <Play className="w-3.5 h-3.5 fill-current" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -764,7 +766,6 @@ export default function JinvexaEnterpriseLMS() {
                 Choose between entering a career goal or providing reference documentation.
               </p>
 
-              {/* FUNCTIONALITY #1 & #2: MODE TOGGLE */}
               <div className="inline-flex p-1 bg-slate-200/60 dark:bg-slate-900 border rounded-xl gap-1 mt-4">
                 <button
                   onClick={() => setDiscoveryType("goal")}
@@ -789,7 +790,6 @@ export default function JinvexaEnterpriseLMS() {
               </div>
             </div>
 
-            {/* Input Studio Card */}
             <div
               className={`${bgCard} border rounded-2xl p-4 shadow-lg max-w-3xl mx-auto flex flex-col sm:flex-row gap-3`}
             >
@@ -805,7 +805,7 @@ export default function JinvexaEnterpriseLMS() {
                   }
                   placeholder={
                     discoveryType === "goal"
-                      ? "e.g., 'Master Robotics Engineering and Motion Control'"
+                      ? "e.g., 'Master Data Engineering and Cloud Architecture'"
                       : "Paste URL, YouTube link, or document path"
                   }
                   className={`w-full ${bgInput} border rounded-xl pl-11 pr-4 py-3 text-sm outline-none focus:border-violet-600 transition`}
@@ -825,7 +825,6 @@ export default function JinvexaEnterpriseLMS() {
               </button>
             </div>
 
-            {/* Generated Specialization Curriculum */}
             {generatedRoadmap.length > 0 && (
               <div className="space-y-6 pt-6 border-t border-slate-200/50 animate-in fade-in">
                 <div
@@ -904,11 +903,10 @@ export default function JinvexaEnterpriseLMS() {
         )}
 
         {/* =========================================================================
-            TAB 3: TEACHING LAYER CLASSROOM (FUNCTIONALITY #3)
+            TAB 3: TEACHING LAYER CLASSROOM (FUNCTIONALITY #3 + REAL TTS AUDIO)
            ========================================================================= */}
         {activeTab === "classroom" && (
           <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
-            {/* Left Course Syllabus Sidebar */}
             <aside
               className={`w-80 border-r ${
                 isZen ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"
@@ -981,7 +979,6 @@ export default function JinvexaEnterpriseLMS() {
             {/* Main Lecture Viewport */}
             <div className={`flex-1 flex flex-col ${bgMain} overflow-y-auto`}>
               <div className="p-6 max-w-4xl mx-auto w-full space-y-6">
-                {/* Breadcrumb */}
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
                   <span>Specialization</span> <ChevronRight className="w-3.5 h-3.5" />
                   <span>
@@ -994,7 +991,7 @@ export default function JinvexaEnterpriseLMS() {
                   </span>
                 </div>
 
-                {/* Player Header */}
+                {/* Player Header with Web Speech API TTS Controls */}
                 <div className={`${bgCard} border rounded-2xl p-6 shadow-sm space-y-6`}>
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
@@ -1017,8 +1014,9 @@ export default function JinvexaEnterpriseLMS() {
                   {/* Audio Controls */}
                   <div className="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-4 rounded-xl flex items-center gap-4">
                     <button
-                      onClick={() => setIsPlayingAudio(!isPlayingAudio)}
+                      onClick={toggleAudioSynthesis}
                       className="w-12 h-12 rounded-full bg-violet-600 hover:bg-violet-700 text-white flex items-center justify-center shadow transition flex-shrink-0"
+                      title={isPlayingAudio ? "Pause Audio Narration" : "Play Study Guide Aloud"}
                     >
                       {isPlayingAudio ? (
                         <Pause className="w-5 h-5" />
@@ -1029,40 +1027,43 @@ export default function JinvexaEnterpriseLMS() {
                     <div className="flex-1 space-y-1">
                       <div className="flex justify-between text-xs font-semibold">
                         <span>AI Lecture Narration ({activeModel})</span>
-                        <span className="text-slate-500 font-mono">03:45 / 15:00</span>
+                        <span className="text-slate-500 font-mono">
+                          {isPlayingAudio ? "Synthesizing Aloud..." : "Ready to Play"}
+                        </span>
                       </div>
-                      <div
-                        onClick={(e) => {
-                          const rect = e.currentTarget.getBoundingClientRect();
-                          const pos = ((e.clientX - rect.left) / rect.width) * 100;
-                          setAudioProgress(Math.min(100, Math.max(0, pos)));
-                        }}
-                        className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden cursor-pointer"
-                      >
+                      <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-violet-600 rounded-full"
+                          className="h-full bg-violet-600 rounded-full transition-all duration-300"
                           style={{ width: `${audioProgress}%` }}
                         />
                       </div>
                     </div>
+                    {isPlayingAudio && (
+                      <button
+                        onClick={stopAudioSynthesis}
+                        className="p-2 text-slate-500 hover:text-rose-600 transition"
+                        title="Stop Narration"
+                      >
+                        <VolumeX className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                {/* Dynamic Lesson Transcript & Notes */}
+                {/* Deep Study Materials Viewport */}
                 <div className={`${bgCard} border rounded-2xl p-8 space-y-6 shadow-sm`}>
                   <h3 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-violet-600" /> AI Lesson Transcript & Notes
+                    <FileText className="w-4 h-4 text-violet-600" /> Complete Study Guide & Notes
                   </h3>
 
                   {isLoadingLesson ? (
                     <div className="py-12 text-center text-xs text-violet-600 font-bold flex items-center justify-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" /> Writing dynamic lesson notes
+                      <Loader2 className="w-4 h-4 animate-spin" /> Writing deep university study guide
                       for {activeCourseTitle}...
                     </div>
                   ) : (
                     <div className="prose max-w-none text-sm space-y-4 leading-relaxed font-normal whitespace-pre-line">
-                      {currentLessonText ||
-                        `Welcome to your dynamic lesson in ${activeCourseTitle}. Select any topic on the left syllabus to generate its custom AI educational notes.`}
+                      {currentLessonText}
                     </div>
                   )}
                 </div>
@@ -1072,7 +1073,7 @@ export default function JinvexaEnterpriseLMS() {
         )}
 
         {/* =========================================================================
-            TAB 4: GRADED ASSIGNMENTS LAYER (FUNCTIONALITY #4)
+            TAB 4: GRADED ASSIGNMENTS LAYER (8-12 MCQS + 3 ESSAYS + HIGH CONTRAST)
            ========================================================================= */}
         {activeTab === "assessments" && (
           <div className="max-w-4xl mx-auto p-8 space-y-8">
@@ -1091,7 +1092,7 @@ export default function JinvexaEnterpriseLMS() {
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-xs font-mono font-medium border px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
-                  <Clock className="w-4 h-4 text-violet-600" /> Time Limit: 30 mins
+                  <Clock className="w-4 h-4 text-violet-600" /> Time Limit: 45 mins
                 </span>
               </div>
             </div>
@@ -1099,10 +1100,10 @@ export default function JinvexaEnterpriseLMS() {
             {!assignmentData ? (
               <div className={`${bgCard} border rounded-2xl p-12 text-center space-y-4 shadow-sm`}>
                 <Award className="w-12 h-12 text-violet-600 mx-auto" />
-                <h3 className="text-lg font-bold">Ready for your {activeCourseTitle} quiz?</h3>
+                <h3 className="text-lg font-bold">Ready for your {activeCourseTitle} exam?</h3>
                 <p className="text-xs text-slate-500 max-w-md mx-auto font-medium">
-                  This quiz consists of multiple-choice analytical questions and an open-ended
-                  essay prompt evaluated autonomously.
+                  This comprehensive university exam consists of 8 to 10 multiple-choice analytical
+                  questions and exactly 3 open-ended essay prompts evaluated autonomously.
                 </p>
                 <button
                   onClick={handleGenerateAssignment}
@@ -1114,57 +1115,93 @@ export default function JinvexaEnterpriseLMS() {
                   ) : (
                     <Sparkles className="w-4 h-4" />
                   )}
-                  {isLoadingAssignment ? "Compiling Custom Quiz..." : "Generate AI Quiz"}
+                  {isLoadingAssignment ? "Compiling Exam..." : "Start Graded Quiz"}
                 </button>
               </div>
             ) : !evalResult ? (
               <div className={`${bgCard} border rounded-2xl p-8 space-y-8 shadow-md`}>
-                <div className="space-y-4">
-                  <span className="text-xs font-bold text-violet-600 uppercase">
-                    Question 1 • Multiple Choice
-                  </span>
-                  <p className="text-base font-semibold">{assignmentData.mcq?.question}</p>
-                  <div className="space-y-2.5 pt-2">
-                    {assignmentData.mcq?.options?.map((opt: string, idx: number) => (
-                      <label
-                        key={idx}
-                        className={`flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer text-sm font-medium ${
-                          selectedMCQ === idx
-                            ? "bg-violet-500/10 border-violet-500 font-semibold"
-                            : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="mcq"
-                          checked={selectedMCQ === idx}
-                          onChange={() => setSelectedMCQ(idx)}
-                          className="w-4 h-4 text-violet-600"
-                        />
-                        {opt}
-                      </label>
-                    ))}
-                  </div>
+                {/* DYNAMIC RENDERING OF 8-12 MCQS (HIGH CONTRAST OPTION CARDS) */}
+                <div className="space-y-8">
+                  <h2 className="text-sm font-bold text-violet-600 uppercase tracking-wider border-b pb-2">
+                    Part 1: Analytical Multiple Choice ({assignmentData.mcqs?.length || 0} Questions)
+                  </h2>
+
+                  {assignmentData.mcqs?.map((mcq, qIdx) => (
+                    <div key={qIdx} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-500 uppercase">
+                          Question {qIdx + 1}
+                        </span>
+                        <span className="text-xs text-slate-500 font-mono font-medium">
+                          10 Points
+                        </span>
+                      </div>
+                      <p className="text-base font-bold text-slate-900 dark:text-white">
+                        {mcq.question}
+                      </p>
+                      <div className="space-y-2.5 pt-1">
+                        {mcq.options?.map((opt: string, optIdx: number) => (
+                          <label
+                            key={optIdx}
+                            className={`flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer text-sm font-semibold transition ${
+                              selectedMCQs[qIdx] === optIdx
+                                ? "bg-violet-500/10 border-violet-600 text-violet-900 dark:text-violet-200 shadow-sm"
+                                : "bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-100 hover:border-slate-400"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name={`mcq_${qIdx}`}
+                              checked={selectedMCQs[qIdx] === optIdx}
+                              onChange={() =>
+                                setSelectedMCQs({ ...selectedMCQs, [qIdx]: optIdx })
+                              }
+                              className="w-4 h-4 text-violet-600 border-slate-400 focus:ring-0"
+                            />
+                            {opt}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
-                <div className="space-y-4 pt-6 border-t border-slate-200/50">
-                  <span className="text-xs font-bold text-violet-600 uppercase">
-                    Question 2 • Open Essay Response
-                  </span>
-                  <p className="text-base font-semibold">{assignmentData.essay?.question}</p>
-                  <textarea
-                    rows={5}
-                    value={essayText}
-                    onChange={(e) => setEssayText(e.target.value)}
-                    placeholder="Provide a detailed, structured technical explanation..."
-                    className={`w-full ${bgInput} border rounded-xl p-4 text-sm outline-none focus:border-violet-600`}
-                  />
+                {/* DYNAMIC RENDERING OF ALL 3 ESSAY QUESTIONS */}
+                <div className="space-y-8 pt-8 border-t border-slate-200/50">
+                  <h2 className="text-sm font-bold text-violet-600 uppercase tracking-wider border-b pb-2">
+                    Part 2: Open-Ended Technical Essays ({assignmentData.essays?.length || 3} Prompts)
+                  </h2>
+
+                  {assignmentData.essays?.map((essay, essayIdx) => (
+                    <div key={essayIdx} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-500 uppercase">
+                          Essay Prompt {essayIdx + 1}
+                        </span>
+                        <span className="text-xs text-slate-500 font-mono font-medium">
+                          20 Points
+                        </span>
+                      </div>
+                      <p className="text-base font-bold text-slate-900 dark:text-white">
+                        {essay.question}
+                      </p>
+                      <textarea
+                        rows={4}
+                        value={essayTexts[essayIdx] || ""}
+                        onChange={(e) =>
+                          setEssayTexts({ ...essayTexts, [essayIdx]: e.target.value })
+                        }
+                        placeholder="Provide a structured, university-grade technical explanation..."
+                        className={`w-full ${bgInput} border rounded-xl p-4 text-sm font-medium outline-none focus:border-violet-600`}
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 <div className="pt-4 flex justify-end">
                   <button
                     onClick={handleSubmitAssignment}
-                    disabled={isEvaluating || selectedMCQ === null || !essayText.trim()}
+                    disabled={isEvaluating}
                     className="bg-violet-600 hover:bg-violet-700 text-white font-semibold px-8 py-3 rounded-xl text-sm flex items-center gap-2 shadow-md"
                   >
                     {isEvaluating ? (
@@ -1172,7 +1209,7 @@ export default function JinvexaEnterpriseLMS() {
                     ) : (
                       <Check className="w-4 h-4" />
                     )}
-                    {isEvaluating ? "AI Grading..." : "Submit Assessment"}
+                    {isEvaluating ? "AI Grading..." : "Submit Full Exam"}
                   </button>
                 </div>
               </div>
@@ -1194,10 +1231,10 @@ export default function JinvexaEnterpriseLMS() {
                     onClick={() => setAssignmentData(null)}
                     className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-semibold"
                   >
-                    Take New Test
+                    Take New Exam
                   </button>
                 </div>
-                <div className="p-5 bg-slate-100 dark:bg-slate-950 rounded-xl text-sm">
+                <div className="p-5 bg-slate-100 dark:bg-slate-950 rounded-xl text-sm leading-relaxed font-normal">
                   {evalResult.feedback}
                 </div>
               </div>
@@ -1225,7 +1262,6 @@ export default function JinvexaEnterpriseLMS() {
                   </div>
                 </div>
 
-                {/* #5: Mode Switcher & #6: History Trigger */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setMentorMode(mentorMode === "session" ? "full" : "session")}
@@ -1243,7 +1279,6 @@ export default function JinvexaEnterpriseLMS() {
                 </div>
               </div>
 
-              {/* FUNCTIONALITY #6: MENTORING HISTORY DRAWER */}
               {showHistoryModal && (
                 <div className="p-4 bg-violet-50 dark:bg-slate-900 border-b border-violet-200 dark:border-slate-800 space-y-2 animate-in fade-in">
                   <div className="flex justify-between items-center">
@@ -1353,7 +1388,6 @@ export default function JinvexaEnterpriseLMS() {
               </p>
             </div>
 
-            {/* Functionality #7 & #8: View Progress & Stats Overview Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div className={`${bgCard} border p-5 rounded-2xl space-y-1 shadow-sm`}>
                 <p className="text-xs text-slate-500 uppercase font-semibold">Total Sessions</p>
@@ -1390,7 +1424,6 @@ export default function JinvexaEnterpriseLMS() {
               </div>
             </div>
 
-            {/* Functionality #9: View Sessions Table */}
             <div className="space-y-4">
               <h2 className="text-lg font-bold flex items-center gap-2">
                 <Layers className="w-5 h-5 text-violet-600" /> 9. All User Sessions
@@ -1410,7 +1443,6 @@ export default function JinvexaEnterpriseLMS() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
-                      {/* Functionality #11: Teaching Status Modal Trigger */}
                       <button
                         onClick={() => setSelectedSessionInspect(sess)}
                         className="px-3 py-2 border rounded-lg text-xs font-bold hover:border-violet-500 flex items-center gap-1.5 transition"
@@ -1419,7 +1451,6 @@ export default function JinvexaEnterpriseLMS() {
                         <span>11. Teaching Status</span>
                       </button>
 
-                      {/* Functionality #10: Continue Conversation Trigger */}
                       <button
                         onClick={() =>
                           handleContinueConversation(sess.topic, sess.roadmap)
@@ -1435,7 +1466,6 @@ export default function JinvexaEnterpriseLMS() {
               </div>
             </div>
 
-            {/* Functionality #11: Teaching Status Inspector Modal */}
             {selectedSessionInspect && (
               <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 <div className={`${bgCard} border max-w-lg w-full rounded-2xl p-6 space-y-4 shadow-2xl`}>
